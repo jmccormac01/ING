@@ -1,0 +1,66 @@
+#	------------------------------------------------------------------------------------------
+#									WFC Filter Details
+#	------------------------------------------------------------------------------------------
+#	Name		No. C_W		Width	Trans	Passband		Thickness	System		Available
+#	------------------------------------------------------------------------------------------
+#	WFCHARB		191	4298	1065	66		B				4			Harris		Yes	
+#	WFCHARV		192	5425	975		88		V				4			Harris		Yes	
+#	WFCHARR		193	6380	1520	83		R				4			Harris		Yes	
+#	WFCRGOI		194	8063	0		95		I				4.1			RGO			Yes	
+#	WFCRGOZ		195	8763	0		96		Z				4.1			RGO			Yes	
+#	WFCO5008	196	5008	100		78		[OIII] 5008/100	10			Narrow Band	Yes	
+#	WFCH6568	197	6568	95		89		Halpha 6568/95	10.1		Narrow Band	Yes	
+#	WFCStrU		198	3480	330		47		U				8.7			Stromgren	Yes	
+#	WFCStrV		199	4110	150		67		v				9			Stromgren	Yes	
+#	WFCStrB		200	4695	210		83		b				8.9			Stromgren	Yes	
+#	WFCStrY		201	5505	240		77		y				9			Stromgren	Yes	
+#	WFCRGOU		204	3581	638		80		U				8.6			RGO			Yes	
+#	WFCHe4686	206	4686	100		78		HeII 4686/100	4.8			Narrow Band	Yes	
+#	WFCO3727	207	3727	100		43		OII 3727/100	6.9			Narrow Band	Yes	
+#	WFC9190		208	9190	50		N/A		Halpha 9190/50	10.1		Narrow Band	Yes	
+#	WFC8160		209	8160	50		89		Halpha 8160/50	10.1		Narrow Band	Yes	
+#	WFCKPB		210	4407	1022	84		B				0			Kitt Peak	Yes	
+#	WFCO5027	211	5027	60		76		OIII 5027/60	10.6		Narrow Band	Yes	
+#	WFCS6725	212	6725	80		85		SII 6725/80		10.6		Narrow Band	Yes	
+#	WFCSloanR	214	6240	1347	90		r				0			Sloan Gunn	Yes	
+#	WFCSloanI	215	7743	1519	94		i				0			Sloan Gunn	Yes	
+#	WFCSloanG	220	4846	1285	90		g				0			Sloan Gunn	Yes	
+#	WFCClear	222	6000	4000	N/A		Clear			0			Clear		Yes	
+#	WFCWash51	223	5085	1050	N/A		51				0			Washington	No	
+#	WFCStrHbW	224	4861	170		N/A		Hbeta 4861/170	0			Stromgren	Yes	
+#	WFCStrHbN	225	4861	30		N/A		Hbeta 4861/30	0			Stromgren	Yes	
+#	WFCED338	226	6886	100		88		Unknown			4.3			Narrow Band	Yes	
+#	WFCED337	227	6657	79		N/A		Unknown			4.3			Narrow Band	Yes	
+#	WFCED336	228	6800	92		N/A		Unknown			4.3			Narrow Band	Yes	
+#	WFCHeI		229	5870	40		N/A		Unknown			4.3			Narrow Band	Yes	
+
+WFCHARB		4298	1065	B
+WFCHARV		5425	975		B
+WFCHARR		6380	1520	B
+WFCRGOI		8063	0		B
+WFCRGOZ		8763	0		B
+WFCRGOU		3581	638		B
+WFCKPB		4407	1022	B
+WFCSloanR	6240	1347	B
+WFCSloanI	7743	1519	B
+WFCSloanG	4846	1285	B
+WFCClear	6000	4000	B
+WFCWash51	5085	1050	B
+WFCO5008	5008	100		N
+WFCH6568	6568	95		N
+WFCStrU		3480	330		N
+WFCStrV		4110	150		N
+WFCStrB		4695	210		N
+WFCStrY		5505	240		N	
+WFCHe4686	4686	100		N
+WFCO3727	3727	100		N
+WFC9190		9190	50		N
+WFC8160		8160	50		N
+WFCO5027	5027	60		N
+WFCS6725	6725	80		N
+WFCStrHbW	4861	170		N
+WFCStrHbN	4861	30		N
+WFCED338	6886	100		N
+WFCED337	6657	79		N
+WFCED336	6800	92		N
+WFCHeI		5870	40		N

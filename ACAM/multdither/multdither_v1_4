@@ -1,0 +1,293 @@
+#!/bin/sh
+
+#########################################################
+#														#
+# 				multdither ACAM v1.4					#
+#														#
+#			IF AUTOGUIDING PLEASE ENSURE 				#
+# 		 GUIDING IS ON BEFORE RUNNING SCRIPT!  			#
+#														#
+#					James McCormac						#
+#														#
+#########################################################
+#
+#	Revision History:	
+#	v1.0	10/04/12	- Script written
+#	v1.1	20/07/12	- Script tested 
+#						- Added auto-on/off capability
+# 	v1.2 	13/08/12	- Corrected offset arc 0 0 error at end if guiding
+#	v1.3	03/09/12	- Added title and offsets to object name
+#	v1.4	12/09/12	- Added get_acam_params at beginning 
+#						  to calculate dead time between exposures
+#						- Script tidied in preparation for release
+#	
+
+
+##################################################
+############## Commandline Check #################
+##################################################
+
+n=$#
+if test $n -lt 5
+	then
+		echo "usage: multdither num exptime step auto-on/off title"
+		echo "e.g. multdither 10 100 5 on QUSge"
+		exit 1
+	fi
+
+
+##################################################
+######### CCD Params + Dead Time Calcs ###########
+##################################################
+
+# workout dead time dt depending on binning and window sizes and rspeed
+# see the jmcc's .numbers spreadsheet for dead time y=mx+c formula derivation
+
+# get the camera binning and readout speeds from
+# parameter notice board
+bx=`ParameterNoticeBoardLister -i UDASCAMERA.ACAM.X_BINNING`
+by=`ParameterNoticeBoardLister -i UDASCAMERA.ACAM.Y_BINNING`
+rspeed=`ParameterNoticeBoardLister -i UDASCAMERA.ACAM.RO_SPEED`
+
+# echo top of title
+echo "***********************************"
+echo "         CCD PARAMETERS"
+echo "***********************************"
+echo "Binning: $bx $by"
+echo "Readout Speed: $rspeed"
+
+# initialise cumulative CCD area as 0 
+area=0
+
+# cycle through the four possible windows on the CCD
+# summing the total area to be read out
+for j in 1 2 3 4
+	do			
+		w=`ParameterNoticeBoardLister -i UDASCAMERA.ACAM.WINDOW_$j`
+
+		var=$(echo "$w" | tr ']' ' ' | tr '[' ' ' | tr ',' ' ' | tr ':' ' ' | awk '{print $1, $2, $3, $4, $5}')
+		set -- $var
+		
+		if test $5 == "enabled"
+			then
+				echo "Window $j: enabled"
+				xlen=$(($2-$1))
+				ylen=$(($4-$3))
+				area=$(($area+$(($xlen*$ylen))))
+		fi
+		if test $5 == "disabled"
+			then
+				echo "Window $j: disabled"
+		fi
+	done
+
+# if no windows are found enabled area=0
+# therefore full frame mode must be being used
+# set area accoridingly
+if test $area -eq 0
+	then
+		echo "No Windows, Full Frame imaging"
+		area=9021600
+fi
+
+echo "CCD Area: $area pixels"
+
+# to be safe set a 3s buffer to dead time calculated here
+buff=3
+
+# check for readout speed and binning configuration
+# then calculate the corresponding dead time
+if test $bx -eq 1 && test $by -eq 1
+	then
+		if test "$rspeed" == "slow"
+			then
+				dt1=`echo $area \\* 0.000004824 | bc`				
+				dt=`echo $dt1 + $buff + 0.5392 | bc`
+				echo "Dead time: $dt"			
+		fi
+		if test "$rspeed" == "fast"
+			then
+				dt1=`echo $area \\* 0.000002824 | bc`				
+				dt=`echo $dt1 + $buff + 0.3725 | bc`
+				echo "Dead time: $dt"			
+		fi
+fi
+
+if test $bx -eq 2 && test $by -eq 2
+	then
+		if test "$rspeed" == "slow"
+			then
+				dt1=`echo $area \\* 0.000002353 | bc`				
+				dt=`echo $dt1 + $buff + 0.2549 | bc`
+				echo "Dead time: $dt"			
+		fi
+		if test "$rspeed" == "fast"
+			then
+				dt1=`echo $area \\* 0.000001794 | bc`				
+				dt=`echo $dt1 + $buff + 0.8235 | bc`
+				echo "Dead time: $dt"			
+		fi
+fi
+
+if test $bx -eq 3 && test $by -eq 3
+	then
+		if test "$rspeed" == "slow"
+			then
+				dt1=`echo $area \\* 0.000001382 | bc`				
+				dt=`echo $dt1 + $buff + 0.5294 | bc`
+				echo "Dead time: $dt"		
+		fi
+		if test "$rspeed" == "fast"
+			then
+				dt1=`echo $area \\* 0.000001000 | bc`				
+				dt=`echo $dt1 + $buff + 0.1667 | bc`
+				echo "Dead time: $dt"			
+		fi
+fi
+
+# echo end of title
+echo "***********************************"
+
+
+##################################################
+############## Autoguiding ON/OFF? ###############
+##################################################
+
+# set guide sleep time - time to sleep after turning guiding back on
+if test "$4" == "on"
+	then
+		gst=10
+		read -p "CHECK WITH TO THAT AUTOGUIDING IS *ON*, THEN PRESS ENTER"
+	fi
+
+if test "$4" == "off"
+	then 
+		gst=0
+		read -p "CHECK WITH TO THAT AUTOGUIDING IS *OFF*, THEN PRESS ENTER"	
+	fi
+
+
+##################################################
+###################### Main ######################
+##################################################
+	
+# set +3s delay to demanded exposure time for starting offsets
+st=$(($2+3))
+
+# set offset sleep time - time to sleep after applying telescope offset
+ost=10
+
+# set image number counters
+i=1
+k=0
+
+# take first image undithered
+echo "1: 0 0"
+run acam $2 "$5 0 0" &
+sleep $st
+
+# start loop over number of images required - 1
+while test $i -lt $1
+do
+
+# increase step size accordingly
+t=$(($3+$(($3*$k))))
+
+# cycle through box pattern of ++, --, +-, -+
+for j in 0 1 2 3
+do 
+
+if test $j -eq 0
+	then
+		xs=1
+		ys=1
+	fi
+if test $j -eq 1
+	then
+		xs=-1
+		ys=-1
+	fi
+if test $j -eq 2
+	then
+		xs=-1
+		ys=1
+	fi
+if test $j -eq 3
+	then
+		xs=1
+		ys=-1
+	fi
+
+if test $i -lt $1
+	then
+		x=$(($t*$xs))
+		y=$(($t*$ys))
+		i=$(($i+1))
+		
+		# check if guiding is used and turn it off for dithering if needed
+		if test "$4" == "on"
+			then 
+				tcsuser "autoguide off"
+			fi
+
+		# apply the dither 
+		offset arc $x $y
+		echo "Offsetting [$i]: $x $y"
+		echo "Sleeping for $ost s..."
+		sleep $ost
+		
+		# resumme guiding if necessary
+		# check dead time and include any additional sleep required here
+		# so the next run call does not clash with previous readout
+		if test "$4" == "on"
+			then
+				tcsuser "autoguide on"
+				echo "Autoguider ON"
+				echo "Sleeping for $gst s..."
+				sleep $gst
+				
+				# work out remaining sleep required	if any
+				ts=$(($ost+$gst))
+				
+				if test $ts -lt $dt
+					then
+						tr=$(($dt-$ts))
+						echo "Readout time > previous sleep period(s), sleeping for additonal $tr s"
+						sleep $tr
+					fi
+			fi
+		
+		# if not guiding check dt against ost for remaining dead time, if any
+		if test "$4" != "off"
+			then
+				if test $ost -lt $dt
+					then
+						tr=$(($dt-$ost))
+						echo "Readout time > previous sleep period(s), sleeping for additonal $tr s"
+						sleep $tr
+					fi
+			fi
+		
+		# take the next ACAM image
+		run acam $2 "$5 $x $y" &
+		sleep $st		
+	fi
+
+done
+k=$(($k+1))
+done
+
+# return the telescope to the original position
+if test "$4" == "on"
+	then 
+		tcsuser "autoguide off"
+		sleep $gst
+	fi
+	
+offset arc 0 0
+
+if test "$4" == "on"
+	then
+		sleep $gst
+		tcsuser "autoguide on"
+	fi

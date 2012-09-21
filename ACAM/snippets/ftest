@@ -1,0 +1,11 @@
+set n = $#argv
+if($n < 1)then
+  echo "usage: ftest exposure_time"
+  exit 1
+endif
+
+window 1 "[800:1200,1800:2200]"
+glance $1
+window 1 disable
+exit 0
+#end

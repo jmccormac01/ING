@@ -1,0 +1,14 @@
+ACAM multdither script testing
+
+ACAM unwindowed = 2048
+
+
+03/09/12 : v1.3 added new title capability  
+
+test 	- multdither 5 5 5 off test 	- Successful test without a/g
+test2 	- multdither 5 5 5 on test 2	- Successful test with a/g
+
+Measured readout times for different binning, rspeeds and window areas
+Found a y=mx+c formula for each combination, see ACAM_ReadoutSpeeds.numbers spreadsheet
+This is to be added to the start of multdither and tested
+

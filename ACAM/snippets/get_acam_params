@@ -1,0 +1,102 @@
+#!/bin/sh
+
+# a script to get ACAM's parameters and work out dead time between
+# exposures for multdither - this code will be inserted at the beginning
+# of the multdither script
+#
+#			James McCormac
+#
+
+bx=`ParameterNoticeBoardLister -i UDASCAMERA.ACAM.X_BINNING`
+by=`ParameterNoticeBoardLister -i UDASCAMERA.ACAM.Y_BINNING`
+rspeed=`ParameterNoticeBoardLister -i UDASCAMERA.ACAM.RO_SPEED`
+echo "***********************************"
+echo "         CCD PARAMETERS"
+echo "***********************************"
+echo "Binning: $bx $by"
+echo "Readout Speed: $rspeed"
+
+
+area=0
+for j in 1 2 3 4
+	do			
+		w=`ParameterNoticeBoardLister -i UDASCAMERA.ACAM.WINDOW_$j`
+
+		var=$(echo "$w" | tr ']' ' ' | tr '[' ' ' | tr ',' ' ' | tr ':' ' ' | awk '{print $1, $2, $3, $4, $5}')
+		set -- $var
+		
+		if test $5 == "enabled"
+			then
+				echo "Window $j: enabled"
+				xlen=$(($2-$1))
+				ylen=$(($4-$3))
+				area=$(($area+$(($xlen*$ylen))))
+		fi
+		if test $5 == "disabled"
+			then
+				echo "Window $j: disabled"
+		fi
+	done
+
+if test $area -eq 0
+	then
+		echo "No Windows, Full Frame imaging"
+		area=9021600
+fi
+
+echo "CCD Area: $area pixels"
+
+buff=3
+
+# Work out the dead time using real readout
+# time calibrations plus a 3s buffer
+if test $bx -eq 1 && test $by -eq 1
+	then
+		if test "$rspeed" == "slow"
+			then
+				dt1=`echo $area \\* 0.000004824 | bc`				
+				dt=`echo $dt1 + $buff + 0.5392 | bc`
+				echo "Dead time: $dt"			
+		fi
+		if test "$rspeed" == "fast"
+			then
+				dt1=`echo $area \\* 0.000002824 | bc`				
+				dt=`echo $dt1 + $buff + 0.3725 | bc`
+				echo "Dead time: $dt"			
+		fi
+fi
+
+if test $bx -eq 2 && test $by -eq 2
+	then
+		if test "$rspeed" == "slow"
+			then
+				dt1=`echo $area \\* 0.000002353 | bc`				
+				dt=`echo $dt1 + $buff + 0.2549 | bc`
+				echo "Dead time: $dt"			
+		fi
+		if test "$rspeed" == "fast"
+			then
+				dt1=`echo $area \\* 0.000001794 | bc`				
+				dt=`echo $dt1 + $buff + 0.8235 | bc`
+				echo "Dead time: $dt"			
+		fi
+fi
+
+if test $bx -eq 3 && test $by -eq 3
+	then
+		if test "$rspeed" == "slow"
+			then
+				dt1=`echo $area \\* 0.000001382 | bc`				
+				dt=`echo $dt1 + $buff + 0.5294 | bc`
+				echo "Dead time: $dt"		
+		fi
+		if test "$rspeed" == "fast"
+			then
+				dt1=`echo $area \\* 0.000001000 | bc`				
+				dt=`echo $dt1 + $buff + 0.1667 | bc`
+				echo "Dead time: $dt"			
+		fi
+fi
+echo "***********************************"
+
+

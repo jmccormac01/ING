@@ -1,0 +1,151 @@
+#!/bin/sh
+
+#########################################################
+#														#
+# 				multdither ACAM v1.3					#
+#														#
+#			IF AUTOGUIDING PLEASE ENSURE 				#
+# 		 GUIDING IS ON BEFORE RUNNING SCRIPT!  			#
+#														#
+#					James McCormac						#
+#														#
+#########################################################
+#
+#	Revision History:	
+#	v1.0	10/04/12	- Script written
+#	v1.1	20/07/12	- Script tested 
+#						- Added auto-on/off capability
+# 	v1.2 	13/08/12	- Corrected offset arc 0 0 error at end if guiding
+#	v1.3	03/09/12	- Added title and offsets to object name
+#	
+#	To do:				- add get_acam_params
+#						  
+#						  
+#
+
+
+# Check all the command line values are present
+n=$#
+if test $n -lt 5
+	then
+		echo "usage: multdither num exptime step auto-on/off title"
+		echo "e.g. multdither 10 100 5 on QUSge"
+		exit 1
+	fi
+
+
+# workout dead time dt depending on binning and window sizes and rspeed
+# see the dead time spreedsheet
+
+
+
+
+if test "$4" == "on"
+	then
+		read -p "CHECK WITH TO THAT AUTOGUIDING IS *ON*, THEN PRESS ENTER"
+	fi
+
+if test "$4" == "off"
+	then 
+		read -p "CHECK WITH TO THAT AUTOGUIDING IS *OFF*, THEN PRESS ENTER"	
+	fi
+
+		
+# Set +3s delay to demanded exposure time for starting offsets
+st=$(($2+3))
+
+# Set image number counters
+i=1
+k=0
+
+# Take first image undithered
+echo "1: 0 0"
+run acam $2 "$5 0 0" &
+sleep $st
+
+
+# Start loop over number of images required - 1
+while test $i -lt $1
+do
+
+# Increase step size accordingly
+t=$(($3+$(($3*$k))))
+
+# Cycle through box pattern of ++, --, +-, -+
+for j in 0 1 2 3
+do 
+
+if test $j -eq 0
+	then
+		xs=1
+		ys=1
+	fi
+if test $j -eq 1
+	then
+		xs=-1
+		ys=-1
+	fi
+if test $j -eq 2
+	then
+		xs=-1
+		ys=1
+	fi
+if test $j -eq 3
+	then
+		xs=1
+		ys=-1
+	fi
+
+if test $i -lt $1
+	then
+		x=$(($t*$xs))
+		y=$(($t*$ys))
+		i=$(($i+1))
+		
+		# Check if guiding is used and turn it off for dithering if enaged
+		if test "$4" == "on"
+			then 
+				tcsuser "autoguide off"
+			fi
+
+		# Apply the dither 
+		offset arc $x $y
+		echo "$i: $x $y"
+		sleep 10
+		
+		# Resumme guiding if necessary
+		if test "$4" == "on"
+			then
+				tcsuser "autoguide on"
+				sleep 10
+			fi
+		
+		# if not guiding allow more time for ACAM to readout
+		if test "$4" != "off"
+			then
+				sleep 15
+			fi
+		
+		# take the next ACAM image
+		run acam $2 "$5 $x $y" &
+		sleep $st		
+	fi
+
+done
+k=$(($k+1))
+done
+
+# return the telescope to the original position
+if test "$4" == "on"
+	then 
+		tcsuser "autoguide off"
+		sleep 10
+	fi
+	
+offset arc 0 0
+
+if test "$4" == "on"
+	then
+		sleep 5
+		tcsuser "autoguide on"
+	fi
