@@ -10,7 +10,7 @@ for j in 1 2 3 4
 		
 		trap 'echo "  ***Ctrl+C caught, exiting!***"; echo "abort ACAM"; exit 0' SIGINT
 		echo "$j"
-		sleep 5
+		sleep 15
 
 	done
 
