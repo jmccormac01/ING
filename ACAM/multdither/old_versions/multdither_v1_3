@@ -17,7 +17,8 @@
 #						- Added auto-on/off capability
 # 	v1.2 	13/08/12	- Corrected offset arc 0 0 error at end if guiding
 #	v1.3	03/09/12	- Added title and offsets to object name
-#	
+#			21/09/12	- Added 'trap' for CTRL+C catching
+#							
 #	To do:				- add get_acam_params
 #						  
 #						  
@@ -28,7 +29,7 @@
 n=$#
 if test $n -lt 5
 	then
-		echo "usage: multdither num exptime step auto-on/off title"
+		echo "usage: multdither num exptime step on/off title"
 		echo "e.g. multdither 10 100 5 on QUSge"
 		exit 1
 	fi
@@ -74,6 +75,8 @@ t=$(($3+$(($3*$k))))
 # Cycle through box pattern of ++, --, +-, -+
 for j in 0 1 2 3
 do 
+
+trap 'echo "  ***Ctrl+C caught, exiting!***"; abort ACAM &; exit 0' SIGINT
 
 if test $j -eq 0
 	then
