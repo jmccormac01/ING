@@ -11,7 +11,6 @@ for j in 1 2 3 4
 		trap 'echo "  ***Ctrl+C caught, exiting!***"; echo "abort ACAM"; exit 0' SIGINT
 		echo "$j"
 		sleep 15
-		echo "testing github"
 
 	done
 
