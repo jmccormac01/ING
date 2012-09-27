@@ -1,26 +1,26 @@
 #!/bin/sh
 
 #########################################################
-#														#
-# 				multdither ACAM v1.4					#
-#														#
-#			IF AUTOGUIDING PLEASE ENSURE 				#
-# 		 GUIDING IS ON BEFORE RUNNING SCRIPT!  			#
-#														#
-#					James McCormac						#
-#														#
+#                                                       #
+#                multdither ACAM v1.4                   #
+#                                                       #
+#           IF AUTOGUIDING PLEASE ENSURE                #
+#        GUIDING IS ON BEFORE RUNNING SCRIPT!           #
+#                                                       #
+#                   James McCormac                      #
+#                                                       #
 #########################################################
 #
 #	Revision History:	
-#	v1.0	10/04/12	- Script written
-#	v1.1	20/07/12	- Script tested 
-#						- Added auto-on/off capability
-# 	v1.2 	13/08/12	- Corrected offset arc 0 0 error at end if guiding
-#	v1.3	03/09/12	- Added title and offsets to object name
-#	v1.4	12/09/12	- Added get_acam_params at beginning 
-#						  to calculate dead time between exposures
-#			27/09/12	- Added DEBUG mode for testing script skeleton only		
-#						- Added CTRL+C trapping
+#   v1.0   10/04/12 - Script written
+#   v1.1   20/07/12 - Script tested 
+#                   - Added auto-on/off capability
+#   v1.2   13/08/12 - Corrected offset arc 0 0 error at end if guiding
+#   v1.3   03/09/12 - Added title and offsets to object name
+#   v1.4   12/09/12 - Added get_acam_params at beginning 
+#                     to calculate dead time between exposures
+#          27/09/12 - Added DEBUG mode for testing script skeleton only		
+#                   - Added CTRL+C trapping
 #	
 
 
