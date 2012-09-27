@@ -1,15 +1,15 @@
 
 #########################################################
 #                                                       #
-#                  autoflat WFC v1.2                    #
+#                  autoflat WFC v1.1                    #
 #                                                       #
 #                    James McCormac                     #
 #                                                       #
 #########################################################
 #
 #   Revision History:	
-#   v1.2   13/08/12 - fixed <2s bug for morning flats
-#
+#   v1.1   13/08/12 - fixed <2s bug for morning flats
+#	
 #   bugs   13/09/12 - first exp from Ftest in afternoon is ~twice as long as needed
 #
 #   To do:
