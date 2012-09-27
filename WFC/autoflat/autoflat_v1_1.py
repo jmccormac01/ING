@@ -30,8 +30,6 @@ print("Modules loaded...")
 
 filt_sleep = 15.0
 offset_sleep = 5.0
-bias_slow = 2165.0
-bias_fast = 1932.0
 max_counts = 35000.0
 target_counts = 30000.0
 min_counts = 20000.0
@@ -96,7 +94,7 @@ def SortFilters(token,f_list):
 		width.append(f[i].split()[2])
 		BoN.append(f[i].split()[3])
 	
-	#f_list=sys.argv[1:]
+	#f_list=sys.argv[1:] 
 
 	id_n,cwl_n,wl_n,id_b,cwl_b,wl_b=[],[],[],[],[],[]
 	
@@ -150,7 +148,23 @@ def ChangeFilter(name):
 	return 0	
 
 
-def FTest(token,data_loc):
+def GetBiasLevel(data_loc):
+	
+	print("Getting fast and slow bias levels…")
+	
+	os.system('bias') 
+	
+	
+	
+	h=pf.open('%s/s1.fit' % (data_loc))
+	data=h[1].data
+	
+	sky_lvl=np.median(np.median(data, axis=0))
+	
+	return bias_f, bias_s
+
+
+def FTest(token,data_loc,bias_f):
 	
 	if token == 0:
 		test_time = min_exp
@@ -166,7 +180,7 @@ def FTest(token,data_loc):
 	h=pf.open('%s/s1.fit' % (data_loc))
 	data=h[1].data
 	
-	sky_lvl=np.median(np.median(data, axis=0))-bias_fast
+	sky_lvl=np.median(np.median(data, axis=0))-bias_f
 		
 	if token == 0:
 		req_exp=test_time/(sky_lvl/target_counts)*tweak
@@ -186,7 +200,7 @@ def FTest(token,data_loc):
 	return sky_lvl, req_exp
 	
 
-def Flat(token,flat_time,data_loc):
+def Flat(token,flat_time,data_loc,bias):
 	
 	os.system('flat %.2f' % (flat_time))
 	
@@ -210,13 +224,8 @@ def Flat(token,flat_time,data_loc):
 	x=h[4].shape[1]/2
 	
 	data=h[4].data[y-100:y+100,x-100:x+100]
-	
-	if sys.argv[2] == 'fast':
-		bias_lvl=bias_fast
-	if sys.argv[2] == 'slow':
-		bias_lvl=bias_slow
 		
-	sky_lvl=np.median(np.median(data, axis=0))-bias_lvl	
+	sky_lvl=np.median(np.median(data, axis=0))-bias
 	
 	# tweak the required exptime to stop rising and
 	# falling counts during calibration phase
@@ -285,9 +294,12 @@ for i in range(0,len(filt_seq)):
 		os.system('window 1 "[900:1100,1900:2100]"')
 		os.system('rspeed fast')
 		
+		# get the bias level in real time to acount for any slight changes
+		bias_f,bias_s=GetBiasLevel(data_loc)
+		
 		# take an FTest image to check the sky level
 		print("Checking sky level...")
-		sky_lvl,req_exp=FTest(token,data_loc)
+		sky_lvl,req_exp=FTest(token,data_loc,bias_f)
 	
 		if req_exp > max_exp:
 			print ("It's too dark, quiting!")
@@ -296,7 +308,7 @@ for i in range(0,len(filt_seq)):
 		# if the required exp time is less than the minimum
 		# loop checking the sky until it is in range
 		while req_exp < min_exp:
-			sky_lvl,req_exp=FTest(token,data_loc)
+			sky_lvl,req_exp=FTest(token,data_loc,bias_f)
 			print("[Sky Level]: %d counts - [Required Exptime]: %.2f sec - Waiting..." % (sky_lvl, req_exp))
 			time.sleep(15)
 		
@@ -311,7 +323,10 @@ for i in range(0,len(filt_seq)):
 			
 			while j < int(sys.argv[1]):
 				# take a flat at the last required exptime
-				sky_lvl,req_exp,t=Flat(token,req_exp,data_loc)
+				if sys.argv[2]=="fast":
+					sky_lvl,req_exp,t=Flat(token,req_exp,data_loc,bias_f)
+				if sys.argv[2]=="slow":
+					sky_lvl,req_exp,t=Flat(token,req_exp,data_loc,bias_s)
 				
 				if req_exp > max_exp:
 					print ("It's too dark, quiting!")
@@ -341,14 +356,17 @@ for i in range(0,len(filt_seq)):
 		os.system('window 1 "[900:1100,1900:2100]"')
 		os.system('rspeed fast')
 		
+		# get the bias level in real time to acount for any slight changes
+		bias_f,bias_s=GetBiasLevel(data_loc)
+		
 		# take an FTest image to check the sky level
 		print("Checking sky level...")
-		sky_lvl,req_exp=FTest(token,data_loc)
+		sky_lvl,req_exp=FTest(token,data_loc,bias_f)
 
 		# if the required exp time is less than the minimum
 		# loop checking the sky until it is in range
 		while req_exp > max_exp:
-			sky_lvl,req_exp=FTest(token,data_loc)
+			sky_lvl,req_exp=FTest(token,data_loc,bias_f)
 			print("[Sky Level]: %d counts - [Required Exptime]: %.2f sec - Waiting..." % (sky_lvl, req_exp))
 			time.sleep(15)
 		
@@ -363,7 +381,10 @@ for i in range(0,len(filt_seq)):
 			
 			while j < int(sys.argv[1]):
 				# take a flat at the last required exptime
-				sky_lvl,req_exp,t=Flat(token,req_exp,data_loc)
+				if sys.argv[2]=="fast":
+					sky_lvl,req_exp,t=Flat(token,req_exp,data_loc,bias_f)
+				if sys.argv[2]=="slow":
+					sky_lvl,req_exp,t=Flat(token,req_exp,data_loc,bias_s)
 				
 				# sky_lvl > 64000 and <-- removed to solve <2s issue at end of morning flats
 				if req_exp < min_exp:
