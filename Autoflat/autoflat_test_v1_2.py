@@ -1,21 +1,21 @@
 
 #########################################################
-#														#
-# 				autoflat_test WFC v1.2					#
-#														#
-#					James McCormac						#
-#														#
+#                                                       #
+#                  autoflat WFC v1.2                    #
+#                                                       #
+#                    James McCormac                     #
+#                                                       #
 #########################################################
 #
-#	Revision History:	
-# 	v1.2 	13/08/12	- fixed <2s bug for morning flats
+#   Revision History:	
+#   v1.2   13/08/12 - fixed <2s bug for morning flats
 #
-#	bugs:	13/09/12	- first exp from Ftest in afternoon is ~twice as long as needed
+#   bugs   13/09/12 - first exp from Ftest in afternoon is ~twice as long as needed
 #
-# 	To do:
-# 		Get filter names from WFC mimic add to filter db
-# 		Add windowed flats capability
-# 		Add binning capability
+#   To do:
+#       Get filter names from WFC mimic add to filter db
+#       Add windowed flats capability
+#       Add binning capability
 
 
 
