@@ -1,7 +1,7 @@
 
 #########################################################
 #                                                       #
-#                  autoflat WFC v1.1                    #
+#                  autoflat WFC v1.2                    #
 #                                                       #
 #                    James McCormac                     #
 #                                                       #
@@ -9,8 +9,10 @@
 #
 #   Revision History:	
 #   v1.1   13/08/12 - fixed <2s bug for morning flats
-#	
-#   bugs   13/09/12 - first exp from Ftest in afternoon is ~twice as long as needed
+#   v1.2   27/09/12 - fixed FTest bug by removing tweak
+#                   - added GetLastImage() and GetBiasLevel() 
+#
+#   bugs   13/09/12 - FTest bug fixed, needs tested at telescope
 #
 #   To do:
 #       Get filter names from WFC mimic add to filter db
@@ -148,18 +150,53 @@ def ChangeFilter(name):
 	return 0	
 
 
+def GetLastImage(data_loc):
+	
+	q=os.listdir(data_loc)
+	q.sort()
+	
+	im_list=[]
+	for i in range(0,len(q)):
+		if q[i][0] == 'r' and q[i][-4:] == '.fit':
+			im_list.append(q[i])
+	
+	# choose the last image
+	t=im_list[-1]
+	
+	return t
+
+
 def GetBiasLevel(data_loc):
 	
 	print("Getting fast and slow bias levels…")
 	
+	# fast
 	os.system('bias') 
 	
+	t=GetLastImage(data_loc)
 	
-	
-	h=pf.open('%s/s1.fit' % (data_loc))
+	h=pf.open('%s/%s' % (data_loc,t))
 	data=h[1].data
 	
-	sky_lvl=np.median(np.median(data, axis=0))
+	bias_f=np.median(np.median(data, axis=0))
+	
+	# slow
+	os.system('rspeed slow')
+	
+	os.system('bias')
+	
+	t2=GetLastImage(data_loc)
+	
+	h2=pf.open('%s/%s' % (data_loc,t2))
+	data2=h2[1].data
+	
+	bias_s=np.median(np.median(data2, axis=0))
+	
+	print("Bias Slow: %.2f ADU" % (bias_s))
+	print("Bias Fast: %.2f ADU" % (bias_f))
+	
+	# set rspeed to fast again for FTest
+	os.system('rspeed fast')
 	
 	return bias_f, bias_s
 
@@ -168,10 +205,8 @@ def FTest(token,data_loc,bias_f):
 	
 	if token == 0:
 		test_time = min_exp
-		tweak=pm_tweak
 	if token == 1:
-		test_time = 10
-		tweak=am_tweak		
+		test_time = 10	
 	
 	# test when at testscope
 	os.system('glance %d' % (test_time))
@@ -183,12 +218,12 @@ def FTest(token,data_loc,bias_f):
 	sky_lvl=np.median(np.median(data, axis=0))-bias_f
 		
 	if token == 0:
-		req_exp=test_time/(sky_lvl/target_counts)*tweak
+		req_exp=test_time/(sky_lvl/target_counts)
 		print("[Ftest] Sky Level: %d Required Exptime: %.2f" % (int(sky_lvl),req_exp))
 
 	if token == 1:
 		if sky_lvl <= 64000:
-			req_exp=test_time/(sky_lvl/target_counts)*tweak
+			req_exp=test_time/(sky_lvl/target_counts)
 			print("[Ftest] Sky Level: %d Required Exptime: %.2f" % (int(sky_lvl),req_exp))
 
 		if sky_lvl > 64000:
@@ -206,16 +241,7 @@ def Flat(token,flat_time,data_loc,bias):
 	
 	time.sleep(3)
 	
-	q=os.listdir(data_loc)
-	q.sort()
-	
-	im_list=[]
-	for i in range(0,len(q)):
-		if q[i][0] == 'r' and q[i][-4:] == '.fit':
-			im_list.append(q[i])
-	
-	# choose the last image
-	t=im_list[-1]
+	t=GetLastImage(data_loc)
 	
 	h=pf.open('%s/%s' % (data_loc, t))
 	
@@ -257,36 +283,48 @@ def Offset(j):
 	
 	return 0
 
-# Main #
 
+######################################
+#                Main                #
+######################################
+
+# check command line args
+# make more detailed when FilterDB is full
 if len(sys.argv) < 4:
 	print("USAGE: py3.2 autoflat_test.py num rspeed f1, f2,..., fn\n")
 	sys.exit(1)
-			
+
+# get afternoon or morning			
 token = GetAMorPM()
 
+# get tonights folder
 data_loc=GetDataDir(token)
 if data_loc==0:
 	print("Error finding data folder, exiting!")
 	sys.exit()
 	
+# get the list of filters	
 n_filt,filt_list=GetFilters()
 
 # get name of filters as appear in WFC mimic
 # add to FiltersDB.txt
 #filt_seq=SortFilters(token,filt_list)
 
+# set filter sequence
 filt_seq=filt_list
-	
+
+# begin looping over required number of flats	
 for i in range(0,len(filt_seq)):
 	
 	j = 0	
 
+	# change filter
 	c1=ChangeFilter(filt_seq[i])
 	if c1 != 0:
 		print("Problem changing filter, exiting!\n")
 		sys.exit()
 	
+	# afternoon
 	if token == 0:
 		
 		# set a window and fast readout speed
@@ -348,7 +386,7 @@ for i in range(0,len(filt_seq)):
 			# reset telescope pointing to 0 0 for next filter
 			o1=Offset(0)
 	
-
+	# morning
 	if token == 1:
 		
 		# set a window and fast readout speed
