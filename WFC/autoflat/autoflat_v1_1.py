@@ -172,6 +172,7 @@ def GetBiasLevel(data_loc):
 	
 	# fast
 	os.system('bias') 
+	time.sleep(1)
 	
 	t=GetLastImage(data_loc)
 	
@@ -184,6 +185,7 @@ def GetBiasLevel(data_loc):
 	os.system('rspeed slow')
 	
 	os.system('bias')
+	time.sleep(1)
 	
 	t2=GetLastImage(data_loc)
 	
