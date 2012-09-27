@@ -19,7 +19,8 @@
 #	v1.3	03/09/12	- Added title and offsets to object name
 #	v1.4	12/09/12	- Added get_acam_params at beginning 
 #						  to calculate dead time between exposures
-#						- Script tidied in preparation for release
+#			27/09/12	- Added DEBUG mode for testing script skeleton only		
+#						- Added CTRL+C trapping
 #	
 
 
@@ -35,6 +36,30 @@ if test $n -lt 5
 		exit 1
 	fi
 
+# check auto on/off arg
+if test "$4" != "on" && test "$4" != "off"
+	then
+		echo "Invalid autoguider value, enter on/off"
+		exit 1
+	fi
+
+# make sanity check on these values
+if test "$4" == "on" && test $1 -gt 10
+	then
+		echo "Do you really want more than 10 guided dither points (y/n)?"
+		read yn
+		if test "$yn" != "yes" && test "$yn" != "y"
+			then
+				exit 1 
+			fi
+		read -p "CHECK WITH TO GUIDING WON'T BE LOST, THE PRESS ENTER"
+	fi
+			
+
+# debugging tag, anything but 1 removes the script's 'teeth'
+# if DEBUG != 1, script makes no calls to telescope, camera or parameter notice board
+DEBUG=0
+
 
 ##################################################
 ######### CCD Params + Dead Time Calcs ###########
@@ -45,109 +70,121 @@ if test $n -lt 5
 
 # get the camera binning and readout speeds from
 # parameter notice board
-bx=`ParameterNoticeBoardLister -i UDASCAMERA.ACAM.X_BINNING`
-by=`ParameterNoticeBoardLister -i UDASCAMERA.ACAM.Y_BINNING`
-rspeed=`ParameterNoticeBoardLister -i UDASCAMERA.ACAM.RO_SPEED`
-
-# echo top of title
-echo "***********************************"
-echo "         CCD PARAMETERS"
-echo "***********************************"
-echo "Binning: $bx $by"
-echo "Readout Speed: $rspeed"
-
-# initialise cumulative CCD area as 0 
-area=0
-
-# cycle through the four possible windows on the CCD
-# summing the total area to be read out
-for j in 1 2 3 4
-	do			
-		w=`ParameterNoticeBoardLister -i UDASCAMERA.ACAM.WINDOW_$j`
-
-		var=$(echo "$w" | tr ']' ' ' | tr '[' ' ' | tr ',' ' ' | tr ':' ' ' | awk '{print $1, $2, $3, $4, $5}')
-		set -- $var
+if test $DEBUG -eq 1
+	then
+		bx=`ParameterNoticeBoardLister -i UDASCAMERA.ACAM.X_BINNING`
+		by=`ParameterNoticeBoardLister -i UDASCAMERA.ACAM.Y_BINNING`
+		rspeed=`ParameterNoticeBoardLister -i UDASCAMERA.ACAM.RO_SPEED`
 		
-		if test $5 == "enabled"
+		# echo top of title
+		echo "***********************************"
+		echo "         CCD PARAMETERS"
+		echo "***********************************"
+		echo "Binning: $bx $by"
+		echo "Readout Speed: $rspeed"
+		
+		# initialise cumulative CCD area as 0 
+		area=0
+		
+		# cycle through the four possible windows on the CCD
+		# summing the total area to be read out
+		for j in 1 2 3 4
+			do			
+				w=`ParameterNoticeBoardLister -i UDASCAMERA.ACAM.WINDOW_$j`
+		
+				var=$(echo "$w" | tr ']' ' ' | tr '[' ' ' | tr ',' ' ' | tr ':' ' ' | awk '{print $1, $2, $3, $4, $5}')
+				set -- $var
+				
+				if test $5 == "enabled"
+					then
+						echo "Window $j: enabled"
+						xlen=$(($2-$1))
+						ylen=$(($4-$3))
+						area=$(($area+$(($xlen*$ylen))))
+				fi
+				if test $5 == "disabled"
+					then
+						echo "Window $j: disabled"
+				fi
+			done
+		
+		# if no windows are found enabled area=0
+		# therefore full frame mode must be being used
+		# set area accoridingly
+		if test $area -eq 0
 			then
-				echo "Window $j: enabled"
-				xlen=$(($2-$1))
-				ylen=$(($4-$3))
-				area=$(($area+$(($xlen*$ylen))))
+				echo "No Windows, Full Frame imaging"
+				area=9021600
 		fi
-		if test $5 == "disabled"
+		
+		echo "CCD Area: $area pixels"
+		
+		# to be safe set a 3s buffer to dead time calculated here
+		buff=3
+		
+		# check for readout speed and binning configuration
+		# then calculate the corresponding dead time
+		if test $bx -eq 1 && test $by -eq 1
 			then
-				echo "Window $j: disabled"
+				if test "$rspeed" == "slow"
+					then
+						dt1=`echo $area \\* 0.000004824 | bc`				
+						dt=`echo $dt1 + $buff + 0.5392 | bc`
+						echo "Dead time: $dt"			
+				fi
+				if test "$rspeed" == "fast"
+					then
+						dt1=`echo $area \\* 0.000002824 | bc`				
+						dt=`echo $dt1 + $buff + 0.3725 | bc`
+						echo "Dead time: $dt"			
+				fi
 		fi
-	done
+		
+		if test $bx -eq 2 && test $by -eq 2
+			then
+				if test "$rspeed" == "slow"
+					then
+						dt1=`echo $area \\* 0.000002353 | bc`				
+						dt=`echo $dt1 + $buff + 0.2549 | bc`
+						echo "Dead time: $dt"			
+				fi
+				if test "$rspeed" == "fast"
+					then
+						dt1=`echo $area \\* 0.000001794 | bc`				
+						dt=`echo $dt1 + $buff + 0.8235 | bc`
+						echo "Dead time: $dt"			
+				fi
+		fi
+		
+		if test $bx -eq 3 && test $by -eq 3
+			then
+				if test "$rspeed" == "slow"
+					then
+						dt1=`echo $area \\* 0.000001382 | bc`				
+						dt=`echo $dt1 + $buff + 0.5294 | bc`
+						echo "Dead time: $dt"		
+				fi
+				if test "$rspeed" == "fast"
+					then
+						dt1=`echo $area \\* 0.000001000 | bc`				
+						dt=`echo $dt1 + $buff + 0.1667 | bc`
+						echo "Dead time: $dt"			
+				fi
+		fi
+		
+		# echo end of title
+		echo "***********************************"
 
-# if no windows are found enabled area=0
-# therefore full frame mode must be being used
-# set area accoridingly
-if test $area -eq 0
+	fi # end of if DEBUG == 1 
+
+if test $DEBUG -ne 1
 	then
-		echo "No Windows, Full Frame imaging"
-		area=9021600
-fi
-
-echo "CCD Area: $area pixels"
-
-# to be safe set a 3s buffer to dead time calculated here
-buff=3
-
-# check for readout speed and binning configuration
-# then calculate the corresponding dead time
-if test $bx -eq 1 && test $by -eq 1
-	then
-		if test "$rspeed" == "slow"
-			then
-				dt1=`echo $area \\* 0.000004824 | bc`				
-				dt=`echo $dt1 + $buff + 0.5392 | bc`
-				echo "Dead time: $dt"			
-		fi
-		if test "$rspeed" == "fast"
-			then
-				dt1=`echo $area \\* 0.000002824 | bc`				
-				dt=`echo $dt1 + $buff + 0.3725 | bc`
-				echo "Dead time: $dt"			
-		fi
-fi
-
-if test $bx -eq 2 && test $by -eq 2
-	then
-		if test "$rspeed" == "slow"
-			then
-				dt1=`echo $area \\* 0.000002353 | bc`				
-				dt=`echo $dt1 + $buff + 0.2549 | bc`
-				echo "Dead time: $dt"			
-		fi
-		if test "$rspeed" == "fast"
-			then
-				dt1=`echo $area \\* 0.000001794 | bc`				
-				dt=`echo $dt1 + $buff + 0.8235 | bc`
-				echo "Dead time: $dt"			
-		fi
-fi
-
-if test $bx -eq 3 && test $by -eq 3
-	then
-		if test "$rspeed" == "slow"
-			then
-				dt1=`echo $area \\* 0.000001382 | bc`				
-				dt=`echo $dt1 + $buff + 0.5294 | bc`
-				echo "Dead time: $dt"		
-		fi
-		if test "$rspeed" == "fast"
-			then
-				dt1=`echo $area \\* 0.000001000 | bc`				
-				dt=`echo $dt1 + $buff + 0.1667 | bc`
-				echo "Dead time: $dt"			
-		fi
-fi
-
-# echo end of title
-echo "***********************************"
-
+		echo "***********************************"
+		echo "         DEBUG MODE ON"
+		echo "***********************************"
+		echo "dt = 50 s"
+		dt=10
+	fi 
 
 ##################################################
 ############## Autoguiding ON/OFF? ###############
@@ -157,19 +194,35 @@ echo "***********************************"
 if test "$4" == "on"
 	then
 		gst=10
+		echo ""
 		read -p "CHECK WITH TO THAT AUTOGUIDING IS *ON*, THEN PRESS ENTER"
+		echo ""
 	fi
 
 if test "$4" == "off"
 	then 
 		gst=0
+		echo ""
 		read -p "CHECK WITH TO THAT AUTOGUIDING IS *OFF*, THEN PRESS ENTER"	
+		echo ""
 	fi
 
 
 ##################################################
 ###################### Main ######################
 ##################################################
+
+# trap CTRL+C to kill script
+if test $DEBUG -eq 1
+	then
+		trap 'echo "  ***Ctrl+C caught, exiting!***"; abort ACAM &; exit 0' SIGINT
+	fi
+
+if test $DEBUG -ne 1
+	then
+		# in DEBUG mode put the abort ACAM & inside the echo
+		trap 'echo "  ***Ctrl+C caught, exiting!***; abort ACAM &"; exit 0' SIGINT
+	fi
 	
 # set +3s delay to demanded exposure time for starting offsets
 st=$(($2+3))
@@ -182,8 +235,11 @@ i=1
 k=0
 
 # take first image undithered
-echo "1: 0 0"
-run acam $2 "$5 0 0" &
+echo "Offset [1]: 0 0"
+if test $DEBUG -eq 1
+	then
+		run acam $2 "$5 0 0" &
+	fi
 sleep $st
 
 # start loop over number of images required - 1
@@ -227,13 +283,19 @@ if test $i -lt $1
 		# check if guiding is used and turn it off for dithering if needed
 		if test "$4" == "on"
 			then 
-				tcsuser "autoguide off"
+				echo "Autoguider OFF"
+				if test $DEBUG -eq 1
+					then
+						tcsuser "autoguide off"
+					fi
 			fi
 
 		# apply the dither 
-		offset arc $x $y
-		echo "Offsetting [$i]: $x $y"
-		echo "Sleeping for $ost s..."
+		if test $DEBUG -eq 1
+			then
+				offset arc $x $y
+			fi
+		echo "Offset [$i]: $x $y, sleeping for $ost s..."
 		sleep $ost
 		
 		# resumme guiding if necessary
@@ -241,9 +303,12 @@ if test $i -lt $1
 		# so the next run call does not clash with previous readout
 		if test "$4" == "on"
 			then
-				tcsuser "autoguide on"
-				echo "Autoguider ON"
-				echo "Sleeping for $gst s..."
+				if test $DEBUG -eq 1
+					then
+						tcsuser "autoguide on"
+						
+					fi
+				echo "Autoguider ON, sleeping for $gst s..."
 				sleep $gst
 				
 				# work out remaining sleep required	if any
@@ -258,7 +323,7 @@ if test $i -lt $1
 			fi
 		
 		# if not guiding check dt against ost for remaining dead time, if any
-		if test "$4" != "off"
+		if test "$4" == "off"
 			then
 				if test $ost -lt $dt
 					then
@@ -269,7 +334,10 @@ if test $i -lt $1
 			fi
 		
 		# take the next ACAM image
-		run acam $2 "$5 $x $y" &
+		if test $DEBUG -eq 1
+			then
+				run acam $2 "$5 $x $y" &
+			fi
 		sleep $st		
 	fi
 
@@ -279,15 +347,24 @@ done
 
 # return the telescope to the original position
 if test "$4" == "on"
-	then 
-		tcsuser "autoguide off"
+	then
+		if test $DEBUG -eq 1
+			then 
+				tcsuser "autoguide off"
+			fi
 		sleep $gst
 	fi
-	
-offset arc 0 0
+
+if test $DEBUG -eq 1
+	then
+		offset arc 0 0
+	fi
 
 if test "$4" == "on"
 	then
 		sleep $gst
-		tcsuser "autoguide on"
+		if test $DEBUG -eq 1
+			then
+				tcsuser "autoguide on"
+			fi
 	fi
