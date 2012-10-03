@@ -84,6 +84,7 @@ if test $DEBUG == 0
 		rspeed=`ParameterNoticeBoardLister -i UDASCAMERA.ACAM.RO_SPEED`
 		
 		# echo top of title
+		echo ""
 		echo "***********************************"
 		echo "         CCD PARAMETERS"
 		echo "***********************************"
