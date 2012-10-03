@@ -58,7 +58,7 @@ if test "$4" == "on" && test $1 -gt 10
 
 # debugging tag, anything but 1 removes the script's 'teeth'
 # if DEBUG != 1, script makes no calls to telescope, camera or parameter notice board
-DEBUG=0
+DEBUG=1
 
 
 ##################################################
