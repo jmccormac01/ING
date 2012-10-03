@@ -237,7 +237,7 @@ fi
 st=$(($exp+3))
 
 # set offset sleep time - time to sleep after applying telescope offset
-ost=10
+ost=10.0
 
 # set image number counters
 i=1
@@ -323,7 +323,7 @@ if test $i -lt $num
 				# work out remaining sleep required	if any
 				ts=$(($ost+$gst))
 				
-				if test $ts -lt $dt
+				if [ $ts < $dt ]
 					then
 						tr=$(($dt-$ts))
 						echo "Readout time > previous sleep period(s), sleeping for additonal $tr s"
@@ -334,7 +334,7 @@ if test $i -lt $num
 		# if not guiding check dt against ost for remaining dead time, if any
 		if test "$ag" == "off"
 			then
-				if test $ost -lt $dt
+				if [ "$ost" < "$dt" ]
 					then
 						tr=$(($dt-$ost))
 						echo "Readout time > previous sleep period(s), sleeping for additonal $tr s"
