@@ -34,14 +34,14 @@ if test $n -lt 5
 		echo "usage: multdither num exptime step auto-on/off title"
 		echo "e.g. multdither 10 100 5 on QUSge"
 		exit 1
-	fi
+fi
 
 # check auto on/off arg
 if test "$4" != "on" && test "$4" != "off"
 	then
 		echo "Invalid autoguider value, enter on/off"
 		exit 1
-	fi
+fi
 
 # make sanity check on these values
 if test "$4" == "on" && test $1 -gt 10
@@ -51,9 +51,9 @@ if test "$4" == "on" && test $1 -gt 10
 		if test "$yn" != "yes" && test "$yn" != "y"
 			then
 				exit 1 
-			fi
+		fi
 		read -p "CHECK WITH TO GUIDING WON'T BE LOST, THE PRESS ENTER"
-	fi
+fi
 			
 
 # debugging tag, anything but 1 removes the script's 'teeth'
@@ -70,7 +70,7 @@ DEBUG=1
 
 # get the camera binning and readout speeds from
 # parameter notice board
-if test $DEBUG -eq 1
+if test $DEBUG -gt 0
 	then
 		bx=`ParameterNoticeBoardLister -i UDASCAMERA.ACAM.X_BINNING`
 		by=`ParameterNoticeBoardLister -i UDASCAMERA.ACAM.Y_BINNING`
@@ -175,16 +175,16 @@ if test $DEBUG -eq 1
 		# echo end of title
 		echo "***********************************"
 
-	fi # end of if DEBUG == 1 
+fi # end of if DEBUG == 1 
 
-if test $DEBUG -ne 1
+if test $DEBUG -lt 1
 	then
 		echo "***********************************"
 		echo "         DEBUG MODE ON"
 		echo "***********************************"
 		echo "dt = 30 s"
 		dt=30
-	fi 
+fi 
 
 ##################################################
 ############## Autoguiding ON/OFF? ###############
@@ -197,7 +197,7 @@ if test "$4" == "on"
 		echo ""
 		read -p "CHECK WITH TO THAT AUTOGUIDING IS *ON*, THEN PRESS ENTER"
 		echo ""
-	fi
+fi
 
 if test "$4" == "off"
 	then 
@@ -205,7 +205,7 @@ if test "$4" == "off"
 		echo ""
 		read -p "CHECK WITH TO THAT AUTOGUIDING IS *OFF*, THEN PRESS ENTER"	
 		echo ""
-	fi
+fi
 
 
 ##################################################
@@ -213,16 +213,16 @@ if test "$4" == "off"
 ##################################################
 
 # trap CTRL+C to kill script
-if test $DEBUG -eq 1
+if test $DEBUG -gt 0
 	then
 		trap 'echo "  ***Ctrl+C caught, exiting!***"; abort ACAM &; exit 0' SIGINT
-	fi
+fi
 
-if test $DEBUG -ne 1
+if test $DEBUG -lt 1
 	then
 		# in DEBUG mode put the abort ACAM & inside the echo
 		trap 'echo "  ***Ctrl+C caught, exiting!***; abort ACAM &"; exit 0' SIGINT
-	fi
+fi
 	
 # set +3s delay to demanded exposure time for starting offsets
 st=$(($2+3))
@@ -236,10 +236,10 @@ k=0
 
 # take first image undithered
 echo "Offset [1]: 0 0"
-if test $DEBUG -eq 1
+if test $DEBUG -gt 0
 	then
 		run acam $2 "$5 0 0" &
-	fi
+fi
 sleep $st
 
 # start loop over number of images required - 1
@@ -257,22 +257,22 @@ if test $j -eq 0
 	then
 		xs=1
 		ys=1
-	fi
+fi
 if test $j -eq 1
 	then
 		xs=-1
 		ys=-1
-	fi
+fi
 if test $j -eq 2
 	then
 		xs=-1
 		ys=1
-	fi
+fi
 if test $j -eq 3
 	then
 		xs=1
 		ys=-1
-	fi
+fi
 
 if test $i -lt $1
 	then
@@ -284,17 +284,17 @@ if test $i -lt $1
 		if test "$4" == "on"
 			then 
 				echo "Autoguider OFF"
-				if test $DEBUG -eq 1
+				if test $DEBUG -gt 0
 					then
 						tcsuser "autoguide off"
-					fi
-			fi
+				fi
+		fi
 
 		# apply the dither 
-		if test $DEBUG -eq 1
+		if test $DEBUG -gt 0
 			then
 				offset arc $x $y
-			fi
+		fi
 		echo "Offset [$i]: $x $y, sleeping for $ost s..."
 		sleep $ost
 		
@@ -303,11 +303,11 @@ if test $i -lt $1
 		# so the next run call does not clash with previous readout
 		if test "$4" == "on"
 			then
-				if test $DEBUG -eq 1
+				if test $DEBUG -gt 0
 					then
 						tcsuser "autoguide on"
 						
-					fi
+				fi
 				echo "Autoguider ON, sleeping for $gst s..."
 				sleep $gst
 				
@@ -319,8 +319,8 @@ if test $i -lt $1
 						tr=$(($dt-$ts))
 						echo "Readout time > previous sleep period(s), sleeping for additonal $tr s"
 						sleep $tr
-					fi
-			fi
+				fi
+		fi
 		
 		# if not guiding check dt against ost for remaining dead time, if any
 		if test "$4" == "off"
@@ -330,16 +330,16 @@ if test $i -lt $1
 						tr=$(($dt-$ost))
 						echo "Readout time > previous sleep period(s), sleeping for additonal $tr s"
 						sleep $tr
-					fi
-			fi
+				fi
+		fi
 		
 		# take the next ACAM image
-		if test $DEBUG -eq 1
+		if test $DEBUG -gt 0
 			then
 				run acam $2 "$5 $x $y" &
-			fi
+		fi
 		sleep $st		
-	fi
+fi
 
 done
 k=$(($k+1))
@@ -348,23 +348,23 @@ done
 # return the telescope to the original position
 if test "$4" == "on"
 	then
-		if test $DEBUG -eq 1
+		if test $DEBUG -gt 0
 			then 
 				tcsuser "autoguide off"
-			fi
+		fi
 		sleep $gst
-	fi
+fi
 
-if test $DEBUG -eq 1
+if test $DEBUG -gt 0
 	then
 		offset arc 0 0
-	fi
+fi
 
 if test "$4" == "on"
 	then
 		sleep $gst
-		if test $DEBUG -eq 1
+		if test $DEBUG -gt 0
 			then
 				tcsuser "autoguide on"
-			fi
-	fi
+		fi
+fi
