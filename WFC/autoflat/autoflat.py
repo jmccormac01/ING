@@ -13,9 +13,9 @@
 #                   - added GetLastImage() and GetBiasLevel() 
 #
 #   bugs   13/09/12 - FTest bug fixed, needs tested at telescope
+#   tests  03/10/12 - Added filter sorting, needs tested at telescope       
 #
 #   To do:
-#       Get filter names from WFC mimic add to filter db
 #       Add windowed flats capability
 #       Add binning capability
 
