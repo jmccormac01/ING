@@ -58,7 +58,7 @@ fi
 
 # debugging tag, anything but 1 removes the script's 'teeth'
 # if DEBUG != 1, script makes no calls to telescope, camera or parameter notice board
-DEBUG=1
+DEBUG=0
 
 
 ##################################################
@@ -70,7 +70,7 @@ DEBUG=1
 
 # get the camera binning and readout speeds from
 # parameter notice board
-if test $DEBUG -gt 0
+if test $DEBUG == 0
 	then
 		bx=`ParameterNoticeBoardLister -i UDASCAMERA.ACAM.X_BINNING`
 		by=`ParameterNoticeBoardLister -i UDASCAMERA.ACAM.Y_BINNING`
@@ -175,9 +175,9 @@ if test $DEBUG -gt 0
 		# echo end of title
 		echo "***********************************"
 
-fi # end of if DEBUG == 1 
+fi # end of if DEBUG == 0
 
-if test $DEBUG -lt 1
+if test $DEBUG == 1
 	then
 		echo "***********************************"
 		echo "         DEBUG MODE ON"
@@ -189,6 +189,8 @@ fi
 ##################################################
 ############## Autoguiding ON/OFF? ###############
 ##################################################
+
+sleep 1
 
 # set guide sleep time - time to sleep after turning guiding back on
 if test "$4" == "on"
@@ -213,12 +215,12 @@ fi
 ##################################################
 
 # trap CTRL+C to kill script
-if test $DEBUG -gt 0
+if test $DEBUG == 0
 	then
 		trap 'echo "  ***Ctrl+C caught, exiting!***"; abort ACAM &; exit 0' SIGINT
 fi
 
-if test $DEBUG -lt 1
+if test $DEBUG == 1
 	then
 		# in DEBUG mode put the abort ACAM & inside the echo
 		trap 'echo "  ***Ctrl+C caught, exiting!***; abort ACAM &"; exit 0' SIGINT
@@ -236,7 +238,7 @@ k=0
 
 # take first image undithered
 echo "Offset [1]: 0 0"
-if test $DEBUG -gt 0
+if test $DEBUG == 0
 	then
 		run acam $2 "$5 0 0" &
 fi
@@ -284,14 +286,14 @@ if test $i -lt $1
 		if test "$4" == "on"
 			then 
 				echo "Autoguider OFF"
-				if test $DEBUG -gt 0
+				if test $DEBUG == 0
 					then
 						tcsuser "autoguide off"
 				fi
 		fi
 
 		# apply the dither 
-		if test $DEBUG -gt 0
+		if test $DEBUG == 0
 			then
 				offset arc $x $y
 		fi
@@ -303,7 +305,7 @@ if test $i -lt $1
 		# so the next run call does not clash with previous readout
 		if test "$4" == "on"
 			then
-				if test $DEBUG -gt 0
+				if test $DEBUG == 0
 					then
 						tcsuser "autoguide on"
 						
@@ -334,7 +336,7 @@ if test $i -lt $1
 		fi
 		
 		# take the next ACAM image
-		if test $DEBUG -gt 0
+		if test $DEBUG == 0
 			then
 				run acam $2 "$5 $x $y" &
 		fi
@@ -348,14 +350,14 @@ done
 # return the telescope to the original position
 if test "$4" == "on"
 	then
-		if test $DEBUG -gt 0
+		if test $DEBUG == 0
 			then 
 				tcsuser "autoguide off"
 		fi
 		sleep $gst
 fi
 
-if test $DEBUG -gt 0
+if test $DEBUG == 0
 	then
 		offset arc 0 0
 fi
@@ -363,7 +365,7 @@ fi
 if test "$4" == "on"
 	then
 		sleep $gst
-		if test $DEBUG -gt 0
+		if test $DEBUG == 0
 			then
 				tcsuser "autoguide on"
 		fi
