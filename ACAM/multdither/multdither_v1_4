@@ -60,6 +60,13 @@ fi
 # if DEBUG != 1, script makes no calls to telescope, camera or parameter notice board
 DEBUG=0
 
+# give command line args names, as awk command in dt calculator hoggs $1, $2, ... etc
+num=$1
+exp=$2
+step=$3
+ag=$4
+title=$5
+
 
 ##################################################
 ######### CCD Params + Dead Time Calcs ###########
@@ -190,10 +197,9 @@ fi
 ############## Autoguiding ON/OFF? ###############
 ##################################################
 
-sleep 1
 
 # set guide sleep time - time to sleep after turning guiding back on
-if test "$4" == "on"
+if test "$ag" == "on"
 	then
 		gst=10
 		echo ""
@@ -201,7 +207,7 @@ if test "$4" == "on"
 		echo ""
 fi
 
-if test "$4" == "off"
+if test "$ag" == "off"
 	then 
 		gst=0
 		echo ""
@@ -227,7 +233,7 @@ if test $DEBUG == 1
 fi
 	
 # set +3s delay to demanded exposure time for starting offsets
-st=$(($2+3))
+st=$(($exp+3))
 
 # set offset sleep time - time to sleep after applying telescope offset
 ost=10
@@ -240,16 +246,16 @@ k=0
 echo "Offset [1]: 0 0"
 if test $DEBUG == 0
 	then
-		run acam $2 "$5 0 0" &
+		run acam $exp "$title 0 0" &
 fi
 sleep $st
 
 # start loop over number of images required - 1
-while test $i -lt $1
+while test $i -lt $num
 do
 
 # increase step size accordingly
-t=$(($3+$(($3*$k))))
+t=$(($step+$(($step*$k))))
 
 # cycle through box pattern of ++, --, +-, -+
 for j in 0 1 2 3
@@ -276,14 +282,14 @@ if test $j -eq 3
 		ys=-1
 fi
 
-if test $i -lt $1
+if test $i -lt $num
 	then
 		x=$(($t*$xs))
 		y=$(($t*$ys))
 		i=$(($i+1))
 		
 		# check if guiding is used and turn it off for dithering if needed
-		if test "$4" == "on"
+		if test "$ag" == "on"
 			then 
 				echo "Autoguider OFF"
 				if test $DEBUG == 0
@@ -303,7 +309,7 @@ if test $i -lt $1
 		# resumme guiding if necessary
 		# check dead time and include any additional sleep required here
 		# so the next run call does not clash with previous readout
-		if test "$4" == "on"
+		if test "$ag" == "on"
 			then
 				if test $DEBUG == 0
 					then
@@ -325,7 +331,7 @@ if test $i -lt $1
 		fi
 		
 		# if not guiding check dt against ost for remaining dead time, if any
-		if test "$4" == "off"
+		if test "$ag" == "off"
 			then
 				if test $ost -lt $dt
 					then
@@ -338,7 +344,7 @@ if test $i -lt $1
 		# take the next ACAM image
 		if test $DEBUG == 0
 			then
-				run acam $2 "$5 $x $y" &
+				run acam $exp "$title $x $y" &
 		fi
 		sleep $st		
 fi
@@ -348,7 +354,7 @@ k=$(($k+1))
 done
 
 # return the telescope to the original position
-if test "$4" == "on"
+if test "$ag" == "on"
 	then
 		if test $DEBUG == 0
 			then 
@@ -362,7 +368,7 @@ if test $DEBUG == 0
 		offset arc 0 0
 fi
 
-if test "$4" == "on"
+if test "$ag" == "on"
 	then
 		sleep $gst
 		if test $DEBUG == 0
