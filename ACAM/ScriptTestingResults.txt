@@ -3,7 +3,7 @@ ACAM multdither script testing
 ACAM unwindowed = 2048
 
 
-03/09/12 : v1.3 added new title capability  
+03/09/12: v1.3 added new title capability  
 
 test 	- multdither 5 5 5 off test 	- Successful test without a/g
 test2 	- multdither 5 5 5 on test 2	- Successful test with a/g
@@ -12,3 +12,32 @@ Measured readout times for different binning, rspeeds and window areas
 Found a y=mx+c formula for each combination, see ACAM_ReadoutSpeeds.numbers spreadsheet
 This is to be added to the start of multdither and tested
 
+03/10/12: converted v1.4 to python to handle ctrl+c catching better
+
+rspeed: slow
+
+	standard window 1 enabled - binning 1x1
+	test1 	multdither 5 30 5 off test_py	- Successful test without a/g
+	test2 	multdither 5 30 5 on test_py	- Successful test with a/g
+	test3 	multdither 5 5 5 on test_py		- Successful short exp with a/g
+	test4 	multdither 25 5 5 off tst_py	- Successful long run with no a/g
+	
+	standard window 1 enabled - binning 2x2
+	test1 multdither 5 5 5 off test_py 		- Successful fast readout test no a/g
+	
+	standard window 1 enabled - binning 3x3
+	test1 multdither 5 5 5 off test_py 		- Successful fast readout test no a/g
+	
+rspeed: fast
+	
+	standard window 1 enabled - binning 1x1
+	test1 multdither 5 5 5 off test_py 		- Successful fast readout test no a/g
+	
+	standard window 1 enabled - binning 2x2
+	test1 multdither 5 5 5 off test_py 		- Successful fast readout test no a/g
+	
+	standard window 1 enabled - binning 3x3
+	test1 multdither 5 5 5 off test_py 		- Successful fast readout test no a/g
+	
+
+CTRL+C catching test, script ends and aborts ACAM safely.
