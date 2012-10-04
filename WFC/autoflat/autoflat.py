@@ -16,10 +16,10 @@
 #                     moved GetBiasLevel() outside filter seq loop.
 #                     Added Filter sorting, tested.
 #                     Fixed last filt not removing FTest conditions if
-#                     too dark or bright to continue
+#                     too dark or bright to continue.
+#                     Fixed gain difference between fast and slow rspeeds, 
+#                     this was real cause of FTest predicting twice req_exp
 #
-#   bugs   13/09/12 - FTest bug fixed, needs tested at telescope
-#   tests  03/10/12 - Added filter sorting, needs tested at telescope       
 #
 #   To do:
 #       Add windowed flats capability
@@ -46,6 +46,7 @@ max_exp = 120.0
 min_exp = 2.0
 am_tweak = 0.75
 pm_tweak = 1.25
+fast_slow_gain=1.95
 
 
 # Functions #
@@ -216,7 +217,7 @@ def GetBiasLevel(data_loc):
 def FTest(token,data_loc,bias_f):
 	
 	if token == 0:
-		test_time = min_exp
+		test_time = 5
 	if token == 1:
 		test_time = 10	
 	
@@ -232,15 +233,26 @@ def FTest(token,data_loc,bias_f):
 	if token == 0:
 		req_exp=test_time/(sky_lvl/target_counts)
 		print("[Ftest] Sky Level: %d Required Exptime: %.2f" % (int(sky_lvl),req_exp))
-
+		
+		# account for gain difference between fast and slow rspeeds
+		if sys.argv[2] == 'slow':
+			req_exp=req_exp/fast_slow_gain
+		
 	if token == 1:
 		if sky_lvl <= 64000:
 			req_exp=test_time/(sky_lvl/target_counts)
 			print("[Ftest] Sky Level: %d Required Exptime: %.2f" % (int(sky_lvl),req_exp))
-
+			
+			# account for gain difference between fast and slow rspeeds
+			if sys.argv[2]=='slow':
+				req_exp=req_exp/fast_slow_gain
+			
 		if sky_lvl > 64000:
 			req_exp=test_time*0.1
 			if req_exp<min_exp:
+	
+				# no need to account for difference in gains as using the lowest exp time
+				# and cannot go lower
 				req_exp=min_exp
 				print ("[Ftest] Sky level saturating, trying %.2f sec" % (req_exp))
 		
