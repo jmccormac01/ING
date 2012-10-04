@@ -232,20 +232,22 @@ def FTest(token,data_loc,bias_f):
 		
 	if token == 0:
 		req_exp=test_time/(sky_lvl/target_counts)
-		print("[Ftest] Sky Level: %d Required Exptime: %.2f" % (int(sky_lvl),req_exp))
 		
 		# account for gain difference between fast and slow rspeeds
 		if sys.argv[2] == 'slow':
 			req_exp=req_exp/fast_slow_gain
 		
+		print("[Ftest] Sky Level: %d Required Exptime: %.2f" % (int(sky_lvl),req_exp))
+
 	if token == 1:
 		if sky_lvl <= 64000:
 			req_exp=test_time/(sky_lvl/target_counts)
-			print("[Ftest] Sky Level: %d Required Exptime: %.2f" % (int(sky_lvl),req_exp))
 			
 			# account for gain difference between fast and slow rspeeds
 			if sys.argv[2]=='slow':
 				req_exp=req_exp/fast_slow_gain
+		
+		print("[Ftest] Sky Level: %d Required Exptime: %.2f" % (int(sky_lvl),req_exp))
 			
 		if sky_lvl > 64000:
 			req_exp=test_time*0.1
