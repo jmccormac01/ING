@@ -12,12 +12,12 @@
 #   v1.2   27/09/12 - fixed FTest bug by removing tweak
 #                   - added GetLastImage() and GetBiasLevel() 
 #   v1.3   04/10/12 - added	 CTRL+C trapping, moved FTest boxed as 
-#                     was measuring dark region at centre of CCD.
-#                     moved GetBiasLevel() outside filter seq loop.
-#                     Added Filter sorting, tested.
-#                     Fixed last filt not removing FTest conditions if
-#                     too dark or bright to continue.
-#                     Fixed gain difference between fast and slow rspeeds, 
+#                     was measuring dark region at centre of CCD
+#                     made GetBiasLevel() for first flat only
+#                     added Filter sorting, tested.
+#                     fixed last filt not removing FTest conditions if
+#                     too dark or bright to continue
+#                     fixed gain difference between fast and slow rspeeds, 
 #                     this was real cause of FTest predicting twice req_exp
 #
 #
