@@ -299,7 +299,7 @@ def Offset(j):
 ##################################################
 
 def signal_handler(signal, frame):
-	print '   Ctrl+C caught, shutting down...'
+	print('   Ctrl+C caught, shutting down…')
 	os.system('abort &')
 	sys.exit(0)
 
