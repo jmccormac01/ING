@@ -217,7 +217,7 @@ def GetBiasLevel(data_loc):
 def FTest(token,data_loc,bias_f):
 	
 	if token == 0:
-		test_time = 5
+		test_time = 2
 	if token == 1:
 		test_time = 10	
 	
