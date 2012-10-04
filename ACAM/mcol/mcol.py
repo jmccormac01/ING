@@ -22,11 +22,12 @@ import signal
 ##################################################
 
 # check command line args are present
-if len(sys.argv) < 4:
-	print '\nUSAGE: python mcol.py name on/off "F1,N1,E1,on/off" ... "Fn,Nn,En,on/off"'
+if sys.argv[2] == "on" and len(sys.argv) < 5 or sys.argv[2] == "off" and len(sys.argv) < 4:
+	print '\nUSAGE: python mcol.py name on/off [step] "F1,N1,E1,on/off" ... "Fn,Nn,En,on/off"'
 	print '\nwhere:'
 	print '\tname: target name'
 	print '\ton/off: dithering on/off'
+	print '\tif dithering on, give step size in arcsec'
 	print '\t"F1,N1,E1,on/off": filt1, num_exps1, exp_time1, a/g on/off'
 	print '\n\t*NOTE quoation marks are required around each observing block*\n'
 	print 'e.g. python mcol.py QUSge on "V,10,300,on" "B,5,100,off"\n'
@@ -41,7 +42,12 @@ if sys.argv[2] != "on" and sys.argv[2] != "off":
 # split args
 filt,num,exptime,ag=[],[],[],[]
 
-for i in sys.argv[3:]:
+if sys.argv[2] == "off":
+	fs=3
+if sys.argv[2] == "on":
+	fs=4
+
+for i in sys.argv[fs:]:
 	filt.append(i.split(',')[0])
 	num.append(i.split(',')[1])
 	exptime.append(i.split(',')[2])
@@ -66,7 +72,9 @@ if "off" in ag:
 	temp=zip(ag,filt,num,exptime)
 	temp.sort(reverse=True)
 	ag,filt,num,exptime=zip(*temp)
-	
+
+if "on" in ag:
+	yn=raw_input("CHECK WITH TO AUTOGUIDING IS *ON*, THEN PRESS ENTER")
 	
 ##################################################
 ############## Ctrl + C Trapping #################
@@ -83,10 +91,21 @@ signal.signal(signal.SIGINT, signal_handler)
 ###################### Main ######################
 ##################################################
 
-
-
-
-
+for i in range(0,len(filt)):
+	print "Changing filter to %s" % (filt[i])
+	os.system("acamimage "% filt[i])
+	
+	# no dithering
+	if sys.argv[2] == "off":
+		
+		if ag[i] == "off":
+			os.system('tcsuser "autoguide off"')
+		
+		os.system('multrun %s %s "%s %s"' % (num[i],exptime[i],sys.argv[1],filt[i]))
+		
+	# dithering
+	if sys.argv[2] == "on":
+		os.system('python /home/whtobs/acam/jmcc/multdither.py %s %s %s %s %s' % (num[i],exptime[i],sys.argv[3],ag[i],sys.argv[1]))
 
 
 
