@@ -114,7 +114,7 @@ def SortFilters(token,f_list):
 					wl_n.append(width[j])
 		
 		if f_list[i] not in mimic:
-		print "Filter not found: %s" % (f_list[i])
+			print "Filter not found: %s" % (f_list[i])
 			
 	# sort the two lists
 	if len(cwl_b) > 0:	
