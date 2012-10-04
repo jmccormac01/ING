@@ -344,9 +344,6 @@ n_filt,filt_list=GetFilters()
 # sort the filters
 filt_seq=SortFilters(token,filt_list)
 
-# get the bias level in real time to acount for any slight changes
-bias_f,bias_s=GetBiasLevel(data_loc)
-
 # begin looping over required number of flats	
 for i in range(0,len(filt_seq)):
 	
@@ -365,6 +362,11 @@ for i in range(0,len(filt_seq)):
 		print("Setting up FTest window and rspeed to fast...")
 		os.system('window 1 "[800:1200,2400:2800]"')
 		os.system('rspeed fast')
+
+		# get the bias level in real time to acount for any slight changes
+		# do for first flat only	
+		if i == 0:
+			bias_f,bias_s=GetBiasLevel(data_loc)
 		
 		# take an FTest image to check the sky level
 		print("Checking sky level...")
@@ -429,6 +431,11 @@ for i in range(0,len(filt_seq)):
 		print("Setting up FTest window and rspeed to fast...")
 		os.system('window 1 "[800:1200,2400:2800]"')
 		os.system('rspeed fast')
+		
+		# get the bias level in real time to acount for any slight changes
+		# do for first flat only	
+		if i == 0:
+			bias_f,bias_s=GetBiasLevel(data_loc)
 		
 		# take an FTest image to check the sky level
 		print("Checking sky level...")
