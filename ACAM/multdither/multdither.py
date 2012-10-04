@@ -156,15 +156,14 @@ while i < int(sys.argv[1]):
 		time.sleep(ost)
 				
 		# resumme guiding if necessary
-		# check dead time and include any additional sleep required here
-		# so the next run call does not clash with previous readout
 		if sys.argv[4] == "on":
 			if DEBUG == 0:
 				os.system('tcsuser "autoguide on"')
 								
 			print "Autoguider ON, sleeping for %d s..." % (gst)
 			time.sleep(gst)
-			
+		
+		# wait for CCD clocks to be IDLE	
 		idle=WaitForIdle()
 		if idle != 0:
 			print "Unexpected response while waiting for CCD to idle, aborting!"
