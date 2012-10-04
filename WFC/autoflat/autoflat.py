@@ -31,6 +31,7 @@ from datetime import date, timedelta
 import os, os.path, sys, time
 import pyfits as pf
 import numpy as np
+import signal
 
 print("Modules loaded...")
 
