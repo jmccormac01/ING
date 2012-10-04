@@ -1,7 +1,7 @@
 
 #########################################################
 #                                                       #
-#               multdither.py ACAM v1.4                 #
+#               multdither.py ACAM v1.5                 #
 #                                                       #
 #           IF AUTOGUIDING PLEASE ENSURE                #
 #        GUIDING IS ON BEFORE RUNNING SCRIPT!           #
@@ -20,7 +20,8 @@
 #                     to calculate dead time between exposures
 #          27/09/12 - Added DEBUG mode for testing script skeleton only		
 #                   - Added CTRL+C trapping
-#	
+#   v1.5   04/09/12 - Removed dt calcs and added watch to CCD clocks for idle
+#                     Tested at telescope and works perfectly
 
 import sys, os
 import time, signal
@@ -57,98 +58,24 @@ def signal_handler(signal, frame):
 
 signal.signal(signal.SIGINT, signal_handler)
 
+##################################################
+############ Wait for IDLE function ##############
+##################################################
 
+def WaitForIdle():
+	
+	idle=""
+	
+	while idle != "idling":
+		idle=os.popen('ParameterNoticeBoardLister -i UDASCAMERA.ACAM.CLOCKS_ACTIVITY').readline().split('\n')[0]
+		time.sleep(1)
+		
+		if idle == "idling":
+			return 0
+	
 # 0 = off
 # 1 = on	
 DEBUG = 0
-
-##################################################
-######### CCD Params + Dead Time Calcs ###########
-##################################################
-
-if DEBUG == 0:
-	bx=int(os.popen('ParameterNoticeBoardLister -i UDASCAMERA.ACAM.X_BINNING').readline().split('\n')[0])
-	by=int(os.popen('ParameterNoticeBoardLister -i UDASCAMERA.ACAM.Y_BINNING').readline().split('\n')[0])	
-	rspeed=os.popen('ParameterNoticeBoardLister -i UDASCAMERA.ACAM.RO_SPEED').readline().split('\n')[0]
-		
-	# print top of title
-	print "\n***********************************"
-	print "         CCD PARAMETERS"
-	print "***********************************"
-	print "Binning: %d %d" % (bx, by)
-	print "Readout Speed: %s" % (rspeed)
-		
-	# initialise cumulative CCD area as 0 
-	area=0
-		
-	# cycle through the four possible windows on the CCD
-	# summing the total area to be read out
-	for j in range(0,4):		
-		w=os.popen('ParameterNoticeBoardLister -i UDASCAMERA.ACAM.WINDOW_%d' % (j+1)).readline().split('\n')[0]
-		
-		x1=int(w.split(":")[0].split('[')[1])
-		x2=int(w.split(":")[1].split(',')[0])
-		y1=int(w.split(":")[1].split(',')[1])
-		y2=int(w.split(':')[2].split(']')[0])
-		onoff=w.split(' ')[-1]
-				
-		if onoff == "enabled":
-			print "Window %d: enabled" % (j+1)
-			xlen=x2-x1
-			ylen=y2-y1
-			area=area+(xlen*ylen)
-			
-		if onoff == "disabled":
-			print "Window %d: disabled" % (j+1)
-		
-	# if no windows are found enabled area=0
-	# therefore full frame mode must be being used
-	# set area accoridingly
-	if area == 0:
-		print "No Windows, Full Frame imaging"
-		area=9021600
-	
-	print "CCD Area: %d pixels" % (area)
-		
-	# to be safe set a 3s buffer to dead time calculated here
-	buff=3
-		
-	# check for readout speed and binning configuration
-	# then calculate the corresponding dead time
-	if bx == 1 and by == 1:
-		if rspeed == "slow":
-			dt=0.5392+(area*0.000004824)
-			print "Dead time: %.2f" % (dt)
-		if rspeed == "fast":
-			dt=0.3725+(area*0.000002824)
-			print "Dead time: %.2f" % (dt)
-	
-	if bx == 2 and by == 2:
-		if rspeed == "slow":
-			dt=0.2549+(area*0.000002353)
-			print "Dead time: %.2f" % (dt)
-		if rspeed == "fast":
-			dt=0.8235+(area*0.000001794)
-			print "Dead time: %.2f" % (dt)
-	
-	if bx == 3 and by == 3:
-		if rspeed == "slow":
-			dt=0.5294+(area*0.000001382)
-			print "Dead time: %.2f" % (dt)
-		if rspeed == "fast":
-			dt=0.1667+(area*0.000001000)
-			print "Dead time: %.2f" % (dt)
-		
-	# print end of title
-	print "***********************************"
-
-if  DEBUG > 0:
-	print "***********************************"
-	print "         DEBUG MODE ON"
-	print "***********************************"
-	print "dt = 30 s"
-	dt=30
-
 
 ##################################################
 ############## Autoguiding ON/OFF? ###############
@@ -237,21 +164,13 @@ while i < int(sys.argv[1]):
 								
 			print "Autoguider ON, sleeping for %d s..." % (gst)
 			time.sleep(gst)
+			
+		idle=WaitForIdle()
+		if idle != 0:
+			print "Unexpected response while waiting for CCD to idle, aborting!"
+			os.system('abort acam &')
+			exit()
 						
-			# work out remaining sleep required	if any
-			ts=ost+gst	
-			if ts < dt:
-				tr=dt-ts
-				print "Readout time > previous sleep period(s), sleeping for additonal %.2f s..." % (tr)
-				time.sleep(tr)
-				
-		# if not guiding check dt against ost for remaining dead time, if any
-		if sys.argv[4] == "off":
-			if ost < dt:
-				tr=dt-ost
-				print "Readout time > previous sleep period(s), sleeping for additonal %.2f s..." % (tr)
-				time.sleep(tr)
-				
 		# take the next ACAM image
 		if DEBUG == 0:
 			print "Image [%d]" % (i)
