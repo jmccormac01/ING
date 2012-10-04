@@ -1,7 +1,7 @@
 
 #########################################################
 #                                                       #
-#                  autoflat WFC v1.2                    #
+#                  autoflat WFC v1.3                    #
 #                                                       #
 #                    James McCormac                     #
 #                                                       #
@@ -11,6 +11,12 @@
 #   v1.1   13/08/12 - fixed <2s bug for morning flats
 #   v1.2   27/09/12 - fixed FTest bug by removing tweak
 #                   - added GetLastImage() and GetBiasLevel() 
+#   v1.3   04/10/12 - added	 CTRL+C trapping, moved FTest boxed as 
+#                     was measuring dark region at centre of CCD.
+#                     moved GetBiasLevel() outside filter seq loop.
+#                     Added Filter sorting, tested.
+#                     Fixed last filt not removing FTest conditions if
+#                     too dark or bright to continue
 #
 #   bugs   13/09/12 - FTest bug fixed, needs tested at telescope
 #   tests  03/10/12 - Added filter sorting, needs tested at telescope       
@@ -288,6 +294,17 @@ def Offset(j):
 	
 	return 0
 
+##################################################
+############## Ctrl + C Trapping #################
+##################################################
+
+def signal_handler(signal, frame):
+	print '   Ctrl+C caught, shutting down...'
+	os.system('abort &')
+	sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
+
 
 ######################################
 #                Main                #
@@ -314,6 +331,9 @@ n_filt,filt_list=GetFilters()
 # sort the filters
 filt_seq=SortFilters(token,filt_list)
 
+# get the bias level in real time to acount for any slight changes
+bias_f,bias_s=GetBiasLevel(data_loc)
+
 # begin looping over required number of flats	
 for i in range(0,len(filt_seq)):
 	
@@ -330,11 +350,8 @@ for i in range(0,len(filt_seq)):
 		
 		# set a window and fast readout speed
 		print("Setting up FTest window and rspeed to fast...")
-		os.system('window 1 "[900:1100,1900:2100]"')
+		os.system('window 1 "[800:1200,2400:2800]"')
 		os.system('rspeed fast')
-		
-		# get the bias level in real time to acount for any slight changes
-		bias_f,bias_s=GetBiasLevel(data_loc)
 		
 		# take an FTest image to check the sky level
 		print("Checking sky level...")
@@ -342,6 +359,11 @@ for i in range(0,len(filt_seq)):
 	
 		if req_exp > max_exp:
 			print ("It's too dark, quiting!")
+			if filt_seq[i] == filt_seq[-1]:
+				print("Disabling FTest window...")
+				os.system('window 1 disable')
+				print("Setting rspeed back to %s..." % (sys.argv[2]))
+				os.system('rspeed %s' % (sys.argv[2]))
 			break
 
 		# if the required exp time is less than the minimum
@@ -392,11 +414,8 @@ for i in range(0,len(filt_seq)):
 		
 		# set a window and fast readout speed
 		print("Setting up FTest window and rspeed to fast...")
-		os.system('window 1 "[900:1100,1900:2100]"')
+		os.system('window 1 "[800:1200,2400:2800]"')
 		os.system('rspeed fast')
-		
-		# get the bias level in real time to acount for any slight changes
-		bias_f,bias_s=GetBiasLevel(data_loc)
 		
 		# take an FTest image to check the sky level
 		print("Checking sky level...")
@@ -428,6 +447,11 @@ for i in range(0,len(filt_seq)):
 				# sky_lvl > 64000 and <-- removed to solve <2s issue at end of morning flats
 				if req_exp < min_exp:
 					print ("It's too bright, quiting!")
+					if filt_seq[i] == filt_seq[-1]:
+						print("Disabling FTest window...")
+						os.system('window 1 disable')
+						print("Setting rspeed back to %s..." % (sys.argv[2]))
+						os.system('rspeed %s' % (sys.argv[2]))
 					break
 	
 				# if the median count are within range accept the flat
