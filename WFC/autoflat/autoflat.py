@@ -171,7 +171,7 @@ def GetLastImage(data_loc):
 
 def GetBiasLevel(data_loc):
 	
-	print("Getting fast and slow bias levels…")
+	print("Getting fast and slow bias levels")
 	
 	# fast
 	os.system('bias') 
