@@ -16,6 +16,7 @@
 
 import sys, os
 import signal
+import time
 
 ##################################################
 ############## Commandline Check #################
@@ -82,7 +83,7 @@ if "on" in ag:
 
 def signal_handler(signal, frame):
 	print '   Ctrl+C caught, shutting down...'
-	os.system('abort acam &')
+	#os.system('abort acam &')
 	sys.exit(0)
 
 signal.signal(signal.SIGINT, signal_handler)
@@ -99,13 +100,20 @@ for i in range(0,len(filt)):
 	if sys.argv[2] == "off":
 		
 		if ag[i] == "off":
-			os.system('tcsuser "autoguide off"')
+			print "Switching off autoguider..."
+			time.sleep(2)
+			#os.system('tcsuser "autoguide off"')
 		
-		os.system('multrun %s %s "%s %s"' % (num[i],exptime[i],sys.argv[1],filt[i]))
+		print "Calling multrun with %s %s %s %s" % (num[i],exptime[i],sys.argv[1],filt[i])
+		time.sleep(2)
+		#os.system('multrun %s %s "%s %s"' % (num[i],exptime[i],sys.argv[1],filt[i]))
 		
 	# dithering
 	if sys.argv[2] == "on":
-		os.system('python /home/whtobs/acam/jmcc/multdither.py %s %s %s %s %s' % (num[i],exptime[i],sys.argv[3],ag[i],sys.argv[1]))
+		
+		print "Calling multdither with %s %s %s %s" % (num[i],exptime[i],sys.argv[3],ag[i],sys.argv[1])
+		time.sleep(2)
+		#os.system('python /home/whtobs/acam/jmcc/multdither.py %s %s %s %s %s' % (num[i],exptime[i],sys.argv[3],ag[i],sys.argv[1]))
 
 
 
