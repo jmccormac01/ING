@@ -130,10 +130,6 @@ for i in sys.argv[fs:]:
 	
 if inv >= 1:
 	printUsage(1)
-
-# if blocks are wrong and none make it to the observing sequence kill script here		
-if len(filt) < 1:
-	print "No valid observing sequence blocks, exiting!"
 	
 # print observing block summary
 for i in range(0,len(filt)):
