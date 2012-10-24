@@ -41,3 +41,7 @@ rspeed: fast
 	
 
 CTRL+C catching test, script ends and aborts ACAM safely.
+
+
+24/10/12: 	v1.6 added new param notice board checking to multdither.py
+			tested v1.1 mcol.py and added param notice board checking too
