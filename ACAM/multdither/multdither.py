@@ -22,6 +22,8 @@
 #                   - Added CTRL+C trapping
 #   v1.5   04/09/12 - Removed dt calcs and added watch to CCD clocks for idle
 #                     Tested at telescope and works perfectly
+#   v1.6   24/10/12 - Added WaitFor* functions to check noticeboard between TCS/ICS calls
+#
 
 import sys, os
 import time, signal
@@ -59,7 +61,7 @@ def signal_handler(signal, frame):
 signal.signal(signal.SIGINT, signal_handler)
 
 ##################################################
-############ Wait for IDLE function ##############
+############# Wait for * functions ###############
 ##################################################
 
 def WaitForIdle():
@@ -72,6 +74,34 @@ def WaitForIdle():
 		
 		if idle == "idling":
 			return 0
+
+def GetTeleStatus():
+	
+	stat=os.popen('ParameterNoticeBoardLister -i TCS.telstat').readline().split('\n')[0]
+	
+	return stat
+
+def WaitForTracking():
+	
+	stat=""
+	
+	while stat != "TRACKING":
+		idle=os.popen('ParameterNoticeBoardLister -i TCS.telstat').readline().split('\n')[0]
+		time.sleep(1)
+		
+		if stat == "TRACKING":
+			return 0
+			
+def WaitForGuiding():
+	
+	stat=""
+	
+	while stat != "GUIDING":
+		idle=os.popen('ParameterNoticeBoardLister -i TCS.telstat').readline().split('\n')[0]
+		time.sleep(1)
+		
+		if stat == "GUIDING":
+			return 0
 	
 # 0 = off
 # 1 = on	
@@ -81,14 +111,28 @@ DEBUG = 0
 ############## Autoguiding ON/OFF? ###############
 ##################################################
 
-# set guide sleep time - time to sleep after turning guiding back on
 if sys.argv[4] == "on":
-	gst=10
-	yn=raw_input("\nCHECK WITH TO THAT AUTOGUIDING IS *ON*, THEN PRESS ENTER\n")
-
+	
+	stat=GetTeleStatus()
+	if stat != "GUIDING":
+		yn=raw_input("\nTELESCOPE NOT GUIDING, START AUTOGUIDER, THEN PRESS ENTER\n")
+		done=WaitForGuiding()
+	
+	
 if sys.argv[4] == "off":
-	gst=0
-	yn=raw_input("\nCHECK WITH TO THAT AUTOGUIDING IS *OFF*, THEN PRESS ENTER\n")	
+	
+	stat=GetTeleStatus()
+	if stat != "TRACKING":
+		if stat == "GUIDING":
+			print "\nTELESCOPE IS GUIDING, STOPPING GUIDER...\n"
+			if DEBUG == 0:
+				os.system('tcsuser "autoguide off"')
+			done=WaitForTracking()
+		
+		if stat == "MOVING":
+			print "\nTELESCOPE IS MOVING, WAITING...\n"
+			done=WaitForTracking()
+				
 
 
 ##################################################
@@ -97,9 +141,6 @@ if sys.argv[4] == "off":
 	
 # set +3s delay to demanded exposure time for starting offsets
 st=int(sys.argv[2])+3
-
-# set offset sleep time - time to sleep after applying telescope offset
-ost=10
 
 # set image number counters
 i=1
@@ -150,18 +191,18 @@ while i < int(sys.argv[1]):
 			print "Autoguider OFF"
 			if DEBUG == 0:
 				os.system('tcsuser "autoguide off"')
+			done=WaitForTracking()
 		
-		print "Offset [%d]: %d %d, sleeping for %d s..." % (i, x, y, ost)
+		print "Offset [%d]: %d %d..." % (i, x, y)
 		os.system('offset arc %d %d' % (x,y))
-		time.sleep(ost)
+		done=WaitForTracking()
 				
 		# resumme guiding if necessary
 		if sys.argv[4] == "on":
+			print "Autoguider ON..."
 			if DEBUG == 0:
 				os.system('tcsuser "autoguide on"')
-								
-			print "Autoguider ON, sleeping for %d s..." % (gst)
-			time.sleep(gst)
+				done=WaitForGuiding()
 		
 		# wait for CCD clocks to be IDLE	
 		idle=WaitForIdle()
@@ -182,13 +223,14 @@ while i < int(sys.argv[1]):
 if sys.argv[4] == "on":
 	if DEBUG == 0:
 		os.system('tcsuser "autoguide off"')
-		time.sleep(gst)
+		done=WaitForTracking()
 
 if DEBUG == 0:
 	os.system('offset arc 0 0')
+	done=WaitForTracking()
 
 if sys.argv[4] == "on":
-	time.sleep(gst)
 	if DEBUG == 0:
 		os.system('tcsuser "autoguide on"')
+		done=WaitForGuiding()
 

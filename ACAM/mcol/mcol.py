@@ -13,17 +13,15 @@
 #	Revision History:	
 #   v1.0   03/10/12 - Script written
 #	
+#   To Do: add parameterNoticeBoard checks + put image runs in BG and do checks for waiting 
+#    hopefully this will allow proper kills
+#
 
 import sys, os
 import signal
 import time
 
-##################################################
-############## Commandline Check #################
-##################################################
-
-# check command line args are present
-if sys.argv[2] == "on" and len(sys.argv) < 5 or sys.argv[2] == "off" and len(sys.argv) < 4:
+def printUsage(xit):
 	print '\nUSAGE: python mcol.py name on/off [step] "F1,N1,E1,on/off" ... "Fn,Nn,En,on/off"'
 	print '\nwhere:'
 	print '\tname: target name'
@@ -32,7 +30,62 @@ if sys.argv[2] == "on" and len(sys.argv) < 5 or sys.argv[2] == "off" and len(sys
 	print '\t"F1,N1,E1,on/off": filt1, num_exps1, exp_time1, a/g on/off'
 	print '\n\t*NOTE quoation marks are required around each observing block*\n'
 	print 'e.g. python mcol.py QUSge on "V,10,300,on" "B,5,100,off"\n'
-	exit()
+	
+	if xit==1:
+		exit()
+
+def WaitForIdle():
+	
+	idle=""
+	
+	while idle != "idling":
+		idle=os.popen('ParameterNoticeBoardLister -i UDASCAMERA.ACAM.CLOCKS_ACTIVITY').readline().split('\n')[0]
+		time.sleep(1)
+		
+		if idle == "idling":
+			return 0
+
+def GetTeleStatus():
+	
+	stat=os.popen('ParameterNoticeBoardLister -i TCS.telstat').readline().split('\n')[0]
+	
+	return stat
+	
+def WaitForTracking():
+	
+	stat=""
+	
+	while stat != "TRACKING":
+		idle=os.popen('ParameterNoticeBoardLister -i TCS.telstat').readline().split('\n')[0]
+		time.sleep(1)
+		
+		if stat == "TRACKING":
+			return 0	
+
+def WaitForGuiding():
+	
+	stat=""
+	
+	while stat != "GUIDING":
+		idle=os.popen('ParameterNoticeBoardLister -i TCS.telstat').readline().split('\n')[0]
+		time.sleep(1)
+		
+		if stat == "GUIDING":
+			return 0	
+
+##################################################
+############## Commandline Check #################
+##################################################
+
+# check command line args are present
+if len(sys.argv) < 4:
+	printUsage(1)
+
+if sys.argv[2] == "on" and len(sys.argv) < 5:
+	printUsage(1)
+	
+if sys.argv[2] == "off" and len(sys.argv) < 4:
+	printUsage(1)
 
 if sys.argv[2] != "on" and sys.argv[2] != "off":
 	print "Invalid dither on/off selection"
@@ -48,12 +101,34 @@ if sys.argv[2] == "off":
 if sys.argv[2] == "on":
 	fs=4
 
-for i in sys.argv[fs:]:
-	filt.append(i.split(',')[0])
-	num.append(i.split(',')[1])
-	exptime.append(i.split(',')[2])
-	ag.append(i.split(',')[3])
+# invalid observing block counter
+inv=0
 
+for i in sys.argv[fs:]:
+
+	if len(i.split(',')) == 4:
+		filt.append(i.split(',')[0])
+		num.append(i.split(',')[1])
+		exptime.append(i.split(',')[2])
+		ag.append(i.split(',')[3])
+
+	if len(i.split(',')) != 4:
+		print '\n***Invalid observing sequence block "%s"***' % (i)
+		print '***See USAGE below and try again***'
+		inv=inv+1
+	
+if inv >= 1:
+	printUsage(1)
+
+# if blocks are wrong and none make it to the observing sequence kill script here		
+if len(filt) < 1:
+	print "No valid observing sequence blocks, exiting!"
+	
+# print observing block summary
+for i in range(0,len(filt)):
+	print "Block %d:" % (i)
+	print "\tFilter: %s, Number: %s, ExpTime: %s s, Autoguider: %s" % (filt[i], num[i], exptime[i], ag[i])
+		
 # check filters against filter database (to be made)
 
 # check number of observations when dithering and autoguiding
@@ -68,14 +143,17 @@ if sys.argv[2] == "on":
 
 
 # put any unguided runs last so the guiding doesn't drift between runs 	
-if "off" in ag:
+if "off" in ag and "on" in ag:
 	print "Placing unguided observations at the end of the run"
 	temp=zip(ag,filt,num,exptime)
 	temp.sort(reverse=True)
 	ag,filt,num,exptime=zip(*temp)
 
 if "on" in ag:
-	yn=raw_input("CHECK WITH TO AUTOGUIDING IS *ON*, THEN PRESS ENTER")
+	stat=GetTeleStatus()
+	if stat != "GUIDING":
+		yn=raw_input("\nTELESCOPE NOT GUIDING, START AUTOGUIDER, THEN PRESS ENTER\n")
+		done=WaitForGuiding()
 	
 ##################################################
 ############## Ctrl + C Trapping #################
@@ -83,7 +161,7 @@ if "on" in ag:
 
 def signal_handler(signal, frame):
 	print '   Ctrl+C caught, shutting down...'
-	#os.system('abort acam &')
+	os.system('abort acam &')
 	sys.exit(0)
 
 signal.signal(signal.SIGINT, signal_handler)
@@ -94,26 +172,30 @@ signal.signal(signal.SIGINT, signal_handler)
 
 for i in range(0,len(filt)):
 	print "Changing filter to %s" % (filt[i])
-	os.system("acamimage "% filt[i])
+	os.system("acamimage %s" % filt[i])
 	
 	# no dithering
 	if sys.argv[2] == "off":
 		
 		if ag[i] == "off":
 			print "Switching off autoguider..."
-			time.sleep(2)
-			#os.system('tcsuser "autoguide off"')
+			os.system('tcsuser "autoguide off"')
+			done=WaitForTracking()
 		
-		print "Calling multrun with %s %s %s %s" % (num[i],exptime[i],sys.argv[1],filt[i])
-		time.sleep(2)
-		#os.system('multrun %s %s "%s %s"' % (num[i],exptime[i],sys.argv[1],filt[i]))
+		# wait for CCD clocks to be IDLE	
+		idle=WaitForIdle()
+		
+		print "Calling multrun acam with %s %s %s %s" % (num[i],exptime[i],sys.argv[1],filt[i])
+		os.system('multrun acam %s %s "%s %s"' % (num[i],exptime[i],sys.argv[1],filt[i]))
 		
 	# dithering
 	if sys.argv[2] == "on":
 		
-		print "Calling multdither with %s %s %s %s" % (num[i],exptime[i],sys.argv[3],ag[i],sys.argv[1])
-		time.sleep(2)
-		#os.system('python /home/whtobs/acam/jmcc/multdither.py %s %s %s %s %s' % (num[i],exptime[i],sys.argv[3],ag[i],sys.argv[1]))
+		# wait for CCD clocks to be IDLE	
+		idle=WaitForIdle()
+		
+		print "Calling multdither with %s %s %s %s %s_%s" % (num[i],exptime[i],sys.argv[3],ag[i],sys.argv[1],filt[i])
+		os.system('python /home/whtobs/acam/jmcc/multdither.py %s %s %s %s %s_%s' % (num[i],exptime[i],sys.argv[3],ag[i],sys.argv[1],filt[i]))
 
 
 
