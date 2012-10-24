@@ -86,7 +86,7 @@ def WaitForTracking():
 	stat=""
 	
 	while stat != "TRACKING":
-		idle=os.popen('ParameterNoticeBoardLister -i TCS.telstat').readline().split('\n')[0]
+		stat=os.popen('ParameterNoticeBoardLister -i TCS.telstat').readline().split('\n')[0]
 		time.sleep(1)
 		
 		if stat == "TRACKING":
@@ -97,7 +97,7 @@ def WaitForGuiding():
 	stat=""
 	
 	while stat != "GUIDING":
-		idle=os.popen('ParameterNoticeBoardLister -i TCS.telstat').readline().split('\n')[0]
+		stat=os.popen('ParameterNoticeBoardLister -i TCS.telstat').readline().split('\n')[0]
 		time.sleep(1)
 		
 		if stat == "GUIDING":

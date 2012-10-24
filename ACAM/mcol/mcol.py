@@ -12,9 +12,8 @@
 #
 #	Revision History:	
 #   v1.0   03/10/12 - Script written
-#	
-#   To Do: add parameterNoticeBoard checks + put image runs in BG and do checks for waiting 
-#    hopefully this will allow proper kills
+#   v1.1   24/10/12 - Script Tested
+#                   - Added ParameterNoticeBoard checking for Tele and CCD  
 #
 
 import sys, os
@@ -56,7 +55,7 @@ def WaitForTracking():
 	stat=""
 	
 	while stat != "TRACKING":
-		idle=os.popen('ParameterNoticeBoardLister -i TCS.telstat').readline().split('\n')[0]
+		stat=os.popen('ParameterNoticeBoardLister -i TCS.telstat').readline().split('\n')[0]
 		time.sleep(1)
 		
 		if stat == "TRACKING":
@@ -67,11 +66,22 @@ def WaitForGuiding():
 	stat=""
 	
 	while stat != "GUIDING":
-		idle=os.popen('ParameterNoticeBoardLister -i TCS.telstat').readline().split('\n')[0]
+		stat=os.popen('ParameterNoticeBoardLister -i TCS.telstat').readline().split('\n')[0]
 		time.sleep(1)
 		
 		if stat == "GUIDING":
 			return 0	
+
+##################################################
+############## Ctrl + C Trapping #################
+##################################################
+
+def signal_handler(signal, frame):
+	print '   Ctrl+C caught, shutting down...'
+	os.system('abort acam &')
+	sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
 
 ##################################################
 ############## Commandline Check #################
@@ -90,7 +100,8 @@ if sys.argv[2] == "off" and len(sys.argv) < 4:
 if sys.argv[2] != "on" and sys.argv[2] != "off":
 	print "Invalid dither on/off selection"
 	print "Please enter on or off"
-	print "Check there are no spaces in the target name"
+	print "Check there is a target name with no spaces"
+	exit()
 
 
 # split args
@@ -134,7 +145,7 @@ for i in range(0,len(filt)):
 # check number of observations when dithering and autoguiding
 if sys.argv[2] == "on":
 	for i in range(0,len(ag)):
-		if ag[i] == "on" and int(num[i]) > 10:
+		if ag[i] == "on" and int(num[i]) > 10 and sys.argv[3] >= 5:
 			yn=raw_input("\nAre you sure you want more than 10 dithered guided exposures? (y/n): ")
 			if yn != "yes" and yn != "y":
 				exit()
@@ -154,23 +165,14 @@ if "on" in ag:
 	if stat != "GUIDING":
 		yn=raw_input("\nTELESCOPE NOT GUIDING, START AUTOGUIDER, THEN PRESS ENTER\n")
 		done=WaitForGuiding()
-	
-##################################################
-############## Ctrl + C Trapping #################
-##################################################
 
-def signal_handler(signal, frame):
-	print '   Ctrl+C caught, shutting down...'
-	os.system('abort acam &')
-	sys.exit(0)
-
-signal.signal(signal.SIGINT, signal_handler)
 
 ##################################################
 ###################### Main ######################
 ##################################################
 
 for i in range(0,len(filt)):
+	
 	print "Changing filter to %s" % (filt[i])
 	os.system("acamimage %s" % filt[i])
 	
@@ -178,15 +180,17 @@ for i in range(0,len(filt)):
 	if sys.argv[2] == "off":
 		
 		if ag[i] == "off":
-			print "Switching off autoguider..."
-			os.system('tcsuser "autoguide off"')
-			done=WaitForTracking()
+			stat=GetTeleStatus()
+			if stat== "GUIDING":
+				print "Switching off autoguider..."
+				os.system('tcsuser "autoguide off"')
+				done=WaitForTracking()
 		
 		# wait for CCD clocks to be IDLE	
 		idle=WaitForIdle()
 		
-		print "Calling multrun acam with %s %s %s %s" % (num[i],exptime[i],sys.argv[1],filt[i])
-		os.system('multrun acam %s %s "%s %s"' % (num[i],exptime[i],sys.argv[1],filt[i]))
+		print "Calling multrun acam with %s %s %s_%s" % (num[i],exptime[i],sys.argv[1],filt[i])
+		os.system('multrun acam %s %s "%s_%s"' % (num[i],exptime[i],sys.argv[1],filt[i]))
 		
 	# dithering
 	if sys.argv[2] == "on":
