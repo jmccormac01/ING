@@ -1,6 +1,6 @@
 #########################################################
 #                                                       #
-#                  mcol.py ACAM v1.0                    #
+#                  mcol.py ACAM v1.1                    #
 #                                                       #
 #        An observing block script to do coloured       #
 #        observations, with or without guiding &        #
