@@ -12,7 +12,7 @@
 #   v1.0   12/11/12 - Script written
 #
 
-import os, time
+import os, time, signal
 
 ##################################################
 ############# Wait for * functions ###############
@@ -68,6 +68,17 @@ def MoveProbe(x,y):
 	
 	return 0
 
+##################################################
+############## Ctrl + C Trapping #################
+##################################################
+
+def signal_handler(signal, frame):
+	print '   Ctrl+C caught, shutting down...'
+	os.system('abort pfip &')
+	sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
+
 
 ##################################################
 ############## Commandline Check #################
@@ -97,7 +108,7 @@ for i in range(0,len(f)):
 ###################### Main ######################
 ##################################################
 
-texp=180
+texp=10
 st=texp+3
 
 for j in range(0,len(name)):
@@ -128,7 +139,7 @@ for j in range(0,len(name)):
 	idle=WaitForIdle()
 	
 	# call image
-	os.system('run pfip %d "%s" &' % (texp,name[j]))
+	#os.system('run pfip %d "%s" &' % (texp,name[j]))
 	
 	# sleep for exptime+3s before startin next loop
 	time.sleep(st)
