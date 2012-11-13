@@ -48,10 +48,17 @@ def WaitForGuiding():
 	stat=""
 	
 	while stat != "GUIDING":
-		stat=os.popen('ParameterNoticeBoardLister -i TCS.telstat').readline().split('\n')[0]
-		time.sleep(1)
+		gsx=float(os.popen('ParameterNoticeBoardLister -i AG.GUIDESTAR.CENTROIDX').readline().split('\n')[0])
+		gsy=float(os.popen('ParameterNoticeBoardLister -i AG.GUIDESTAR.CENTROIDY').readline().split('\n')[0])
 		
-		os.system('tcsuser "autoguide on"')
+		stat=os.popen('ParameterNoticeBoardLister -i TCS.telstat').readline().split('\n')[0]
+		time.sleep(5)
+		
+		gsx_n=float(os.popen('ParameterNoticeBoardLister -i AG.GUIDESTAR.CENTROIDX').readline().split('\n')[0])
+		gsy_n=float(os.popen('ParameterNoticeBoardLister -i AG.GUIDESTAR.CENTROIDY').readline().split('\n')[0])
+		
+		if abs(gsx_n-gsx) < 10 and abs(gsy_n-gsy) < 10:
+			os.system('tcsuser "autoguide on"')
 		
 		if stat == "GUIDING":
 			return 0
@@ -116,6 +123,8 @@ st=texp+3
 
 for j in range(0,len(name)):
 	
+	os.system('tcsuser "autoguide off"')
+	
 	# move to target
 	print "Moving to %s..." % (name[j])
 	go=GoTo(name[j])
@@ -148,5 +157,6 @@ for j in range(0,len(name)):
 	
 	# sleep for exptime+3s before startin next loop
 	time.sleep(st)
+
 	
 	
