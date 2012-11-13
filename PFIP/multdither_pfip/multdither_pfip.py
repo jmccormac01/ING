@@ -52,13 +52,16 @@ def WaitForGuiding():
 		gsy=float(os.popen('ParameterNoticeBoardLister -i AG.GUIDESTAR.CENTROIDY').readline().split('\n')[0])
 		
 		stat=os.popen('ParameterNoticeBoardLister -i TCS.telstat').readline().split('\n')[0]
-		time.sleep(5)
+		time.sleep(2)
 		
 		gsx_n=float(os.popen('ParameterNoticeBoardLister -i AG.GUIDESTAR.CENTROIDX').readline().split('\n')[0])
 		gsy_n=float(os.popen('ParameterNoticeBoardLister -i AG.GUIDESTAR.CENTROIDY').readline().split('\n')[0])
 		
-		if abs(gsx_n-gsx) < 10 and abs(gsy_n-gsy) < 10:
-			os.system('tcsuser "autoguide on"')
+		# check that the guide star positions are not the same
+		# i.e. if using long guide exposures
+		if gsx_n != gsx and gsy_n != gsy:
+			if abs(gsx_n-gsx) < 10 and abs(gsy_n-gsy) < 10:
+				os.system('tcsuser "autoguide on"')
 		
 		if stat == "GUIDING":
 			return 0
