@@ -10,9 +10,10 @@
 #
 #	Revision History:	
 #   v1.0   12/11/12 - Script written
+#                   - Script tested on sky, works well - check guider continously
 #
 
-import os, time, signal
+import os, time, signal, sys
 
 ##################################################
 ############# Wait for * functions ###############
@@ -50,12 +51,14 @@ def WaitForGuiding():
 		stat=os.popen('ParameterNoticeBoardLister -i TCS.telstat').readline().split('\n')[0]
 		time.sleep(1)
 		
+		os.system('tcsuser "autoguide on"')
+		
 		if stat == "GUIDING":
 			return 0
 
 def GoTo(tar):
 	
-	comm="gocat %s" % (tar)
+	comm="gocat %s &" % (tar)
 	os.system(comm)	
 
 	return 0
@@ -101,45 +104,47 @@ name,x,y=[],[],[]
 
 for i in range(0,len(f)):
 	name.append(f[i].split()[0])
-	x.append(f[1].split()[7])
-	y.append(f[1].split()[8])
+	x.append(f[i].split()[7])
+	y.append(f[i].split()[8])
 	
 ##################################################
 ###################### Main ######################
 ##################################################
 
-texp=10
+texp=120
 st=texp+3
 
 for j in range(0,len(name)):
 	
 	# move to target
+	print "Moving to %s..." % (name[j])
 	go=GoTo(name[j])
 	
 	# move guide probe
+	print "Moving probe to %s %s..." % (x[j],y[j])
 	probe=MoveProbe(x[j],y[j])
 	
 	# wait for telescope tracking
+	print "Waiting for the telescope to start tracking..."
 	track=WaitForTracking()
 	
 	# sleep for 2s after tracking starts - can be removed after testing 
 	time.sleep(2)
-	
-	# turn on guider - hopefully this will help probe movement ambiguity
-	# if not just add fixed sleep time
-	os.system('tcsuser "autoguide on"')
-	
+		
 	# wait for guiding
+	print "Waiting for the autoguider..."
 	guide=WaitForGuiding()
 	
 	# sleep for 2s after guiding stars - can be removed after testing
 	time.sleep(2)
 	
 	# wait for CCD to be ready
+	print "Waiting for the CCD to idle..."
 	idle=WaitForIdle()
 	
 	# call image
-	#os.system('run pfip %d "%s" &' % (texp,name[j]))
+	print "Imaging %d s at target %s..." % (texp,name[j])
+	os.system('run pfip %d "%s" &' % (texp,name[j]))
 	
 	# sleep for exptime+3s before startin next loop
 	time.sleep(st)
