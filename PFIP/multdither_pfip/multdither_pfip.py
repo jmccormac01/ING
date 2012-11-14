@@ -126,15 +126,15 @@ st=texp+3
 
 for j in range(0,len(name)):
 	
-	os.system('tcsuser "autoguide off"')
+	#os.system('tcsuser "autoguide off"')
 	
 	# move to target
 	print "Moving to %s..." % (name[j])
 	go=GoTo(name[j])
 	
 	# move guide probe
-	print "Moving probe to %s %s..." % (x[j],y[j])
-	probe=MoveProbe(x[j],y[j])
+	#print "Moving probe to %s %s..." % (x[j],y[j])
+	#probe=MoveProbe(x[j],y[j])
 	
 	# wait for telescope tracking
 	print "Waiting for the telescope to start tracking..."
@@ -144,11 +144,11 @@ for j in range(0,len(name)):
 	time.sleep(2)
 		
 	# wait for guiding
-	print "Waiting for the autoguider..."
-	guide=WaitForGuiding()
+	#print "Waiting for the autoguider..."
+	#guide=WaitForGuiding()
 	
 	# sleep for 2s after guiding stars - can be removed after testing
-	time.sleep(2)
+	#time.sleep(2)
 	
 	# wait for CCD to be ready
 	print "Waiting for the CCD to idle..."
@@ -161,5 +161,5 @@ for j in range(0,len(name)):
 	# sleep for exptime+3s before startin next loop
 	time.sleep(st)
 
-	
+#os.system('tcsuser "autoguide off"')	
 	
