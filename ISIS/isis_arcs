@@ -1,0 +1,6 @@
+agcomp &
+complamps cuar+ cune 
+arc red 2 "arc" &
+arc blue 50 "arc"
+complamps off &
+agslit
