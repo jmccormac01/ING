@@ -23,6 +23,7 @@
 #   v1.5   04/09/12 - Removed dt calcs and added watch to CCD clocks for idle
 #                     Tested at telescope and works perfectly
 #   v1.6   24/10/12 - Added WaitFor* functions to check noticeboard between TCS/ICS calls
+#   v1.7   13/02/13 - Added check for guider stability so not to guide on trailed star
 #
 
 import sys, os
@@ -97,8 +98,20 @@ def WaitForGuiding():
 	stat=""
 	
 	while stat != "GUIDING":
+		gsx=float(os.popen('ParameterNoticeBoardLister -i AG.GUIDESTAR.CENTROIDX').readline().split('\n')[0])
+		gsy=float(os.popen('ParameterNoticeBoardLister -i AG.GUIDESTAR.CENTROIDY').readline().split('\n')[0])
+		
 		stat=os.popen('ParameterNoticeBoardLister -i TCS.telstat').readline().split('\n')[0]
-		time.sleep(1)
+		time.sleep(2)
+		
+		gsx_n=float(os.popen('ParameterNoticeBoardLister -i AG.GUIDESTAR.CENTROIDX').readline().split('\n')[0])
+		gsy_n=float(os.popen('ParameterNoticeBoardLister -i AG.GUIDESTAR.CENTROIDY').readline().split('\n')[0])
+		
+		# check that the guide star positions are not the same
+		# i.e. if using long guide exposures
+		if gsx_n != gsx and gsy_n != gsy:
+			if abs(gsx_n-gsx) < 10 and abs(gsy_n-gsy) < 10:
+				os.system('tcsuser "autoguide on"')
 		
 		if stat == "GUIDING":
 			return 0
@@ -201,7 +214,8 @@ while i < int(sys.argv[1]):
 		if sys.argv[4] == "on":
 			print "Autoguider ON..."
 			if DEBUG == 0:
-				os.system('tcsuser "autoguide on"')
+				# ag on is now done inside WaitForGuiding() v1.7
+				#os.system('tcsuser "autoguide on"')
 				done=WaitForGuiding()
 		
 		# wait for CCD clocks to be IDLE	
@@ -231,6 +245,7 @@ if DEBUG == 0:
 
 if sys.argv[4] == "on":
 	if DEBUG == 0:
-		os.system('tcsuser "autoguide on"')
+		# ag on is now done inside WaitForGuiding() v1.7
+		#os.system('tcsuser "autoguide on"')
 		done=WaitForGuiding()
 
