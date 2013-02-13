@@ -1,7 +1,7 @@
 
 #########################################################
 #                                                       #
-#               multdither.py ACAM v1.6                 #
+#               multdither.py ACAM v1.7                 #
 #                                                       #
 #           IF AUTOGUIDING PLEASE ENSURE                #
 #        GUIDING IS ON BEFORE RUNNING SCRIPT!           #
