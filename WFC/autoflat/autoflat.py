@@ -1,7 +1,7 @@
 
 #########################################################
 #                                                       #
-#                  autoflat WFC v1.1                    #
+#                  autoflat WFC v1.3                    #
 #                                                       #
 #                    James McCormac                     #
 #                                                       #
@@ -9,11 +9,19 @@
 #
 #   Revision History:	
 #   v1.1   13/08/12 - fixed <2s bug for morning flats
-#	
-#   bugs   13/09/12 - first exp from Ftest in afternoon is ~twice as long as needed
+#   v1.2   27/09/12 - fixed FTest bug by removing tweak
+#                   - added GetLastImage() and GetBiasLevel() 
+#   v1.3   04/10/12 - added	 CTRL+C trapping, moved FTest boxed as 
+#                     was measuring dark region at centre of CCD
+#                     made GetBiasLevel() for first flat only
+#                     added Filter sorting, tested.
+#                     fixed last filt not removing FTest conditions if
+#                     too dark or bright to continue
+#                     fixed gain difference between fast and slow rspeeds, 
+#                     this was real cause of FTest predicting twice req_exp
+#
 #
 #   To do:
-#       Get filter names from WFC mimic add to filter db
 #       Add windowed flats capability
 #       Add binning capability
 
@@ -23,6 +31,7 @@ from datetime import date, timedelta
 import os, os.path, sys, time
 import pyfits as pf
 import numpy as np
+import signal
 
 print("Modules loaded...")
 
@@ -30,8 +39,6 @@ print("Modules loaded...")
 
 filt_sleep = 15.0
 offset_sleep = 5.0
-bias_slow = 2165.0
-bias_fast = 1932.0
 max_counts = 35000.0
 target_counts = 30000.0
 min_counts = 20000.0
@@ -39,6 +46,7 @@ max_exp = 120.0
 min_exp = 2.0
 am_tweak = 0.75
 pm_tweak = 1.25
+fast_slow_gain=1.95
 
 
 # Functions #
@@ -88,31 +96,34 @@ def SortFilters(token,f_list):
 	f_db='/home/intobs/jmcc/FilterDB.txt'
 	f=open(f_db,'r').readlines()
 
-	name,BoN,cen_wave,width=[],[],[],[]
+	name,BoN,cen_wave,width,num,mimic=[],[],[],[],[],[]
 
 	for i in range(0,len(f)):
 		name.append(f[i].split()[0])
 		cen_wave.append(f[i].split()[1])
 		width.append(f[i].split()[2])
-		BoN.append(f[i].split()[3])
-	
-	#f_list=sys.argv[1:]
+		BoN.append(f[i].split()[3]) 
+		num.append(f[i].split()[4])
+		mimic.append(f[i].split()[5])
 
 	id_n,cwl_n,wl_n,id_b,cwl_b,wl_b=[],[],[],[],[],[]
 	
 	# create 2 lists for narrow and broad band filters
 	for i in range(0,len(f_list)):
 		for j in range(0,len(f)):
-			if f_list[i] == name[j]:
+			if f_list[i] == mimic[j]:
 				if BoN[j] == 'B':
-					id_b.append(name[j])
+					id_b.append(mimic[j])
 					cwl_b.append(cen_wave[j])
 					wl_b.append(width[j])
 				if BoN[j] == 'N':
-					id_n.append(name[j])
+					id_n.append(mimic[j])
 					cwl_n.append(cen_wave[j])
 					wl_n.append(width[j])
-	
+		
+		if f_list[i] not in mimic:
+			print("Filter not found: %s" % (f_list[i]))
+			
 	# sort the two lists
 	if len(cwl_b) > 0:	
 		x=list(zip(cwl_b,wl_b,id_b))
@@ -150,47 +161,7 @@ def ChangeFilter(name):
 	return 0	
 
 
-def FTest(token,data_loc):
-	
-	if token == 0:
-		test_time = min_exp
-		tweak=pm_tweak
-	if token == 1:
-		test_time = 10
-		tweak=am_tweak		
-	
-	# test when at testscope
-	os.system('glance %d' % (test_time))
-	
-	# code to get median counts from test image
-	h=pf.open('%s/s1.fit' % (data_loc))
-	data=h[1].data
-	
-	sky_lvl=np.median(np.median(data, axis=0))-bias_fast
-		
-	if token == 0:
-		req_exp=test_time/(sky_lvl/target_counts)*tweak
-		print("[Ftest] Sky Level: %d Required Exptime: %.2f" % (int(sky_lvl),req_exp))
-
-	if token == 1:
-		if sky_lvl <= 64000:
-			req_exp=test_time/(sky_lvl/target_counts)*tweak
-			print("[Ftest] Sky Level: %d Required Exptime: %.2f" % (int(sky_lvl),req_exp))
-
-		if sky_lvl > 64000:
-			req_exp=test_time*0.1
-			if req_exp<min_exp:
-				req_exp=min_exp
-				print ("[Ftest] Sky level saturating, trying %.2f sec" % (req_exp))
-		
-	return sky_lvl, req_exp
-	
-
-def Flat(token,flat_time,data_loc):
-	
-	os.system('flat %.2f' % (flat_time))
-	
-	time.sleep(3)
+def GetLastImage(data_loc):
 	
 	q=os.listdir(data_loc)
 	q.sort()
@@ -203,6 +174,101 @@ def Flat(token,flat_time,data_loc):
 	# choose the last image
 	t=im_list[-1]
 	
+	return t
+
+
+def GetBiasLevel(data_loc):
+	
+	print("Getting fast and slow bias levels")
+	
+	# fast
+	os.system('bias') 
+	time.sleep(1)
+	
+	t=GetLastImage(data_loc)
+	
+	h=pf.open('%s/%s' % (data_loc,t))
+	data=h[1].data
+	
+	bias_f=np.median(np.median(data, axis=0))
+	
+	# slow
+	os.system('rspeed slow')
+	
+	os.system('bias')
+	time.sleep(1)
+	
+	t2=GetLastImage(data_loc)
+	
+	h2=pf.open('%s/%s' % (data_loc,t2))
+	data2=h2[1].data
+	
+	bias_s=np.median(np.median(data2, axis=0))
+	
+	print("Bias Slow: %.2f ADU" % (bias_s))
+	print("Bias Fast: %.2f ADU" % (bias_f))
+	
+	# set rspeed to fast again for FTest
+	os.system('rspeed fast')
+	
+	return bias_f, bias_s
+
+
+def FTest(token,data_loc,bias_f):
+	
+	if token == 0:
+		test_time = 2
+	if token == 1:
+		test_time = 10	
+	
+	# test when at testscope
+	os.system('glance %d' % (test_time))
+	
+	# code to get median counts from test image
+	h=pf.open('%s/s1.fit' % (data_loc))
+	data=h[1].data
+	
+	sky_lvl=np.median(np.median(data, axis=0))-bias_f
+		
+	if token == 0:
+		req_exp=test_time/(sky_lvl/target_counts)
+		
+		# account for gain difference between fast and slow rspeeds
+		if sys.argv[2] == 'slow':
+			req_exp=req_exp/fast_slow_gain
+		
+		print("[Ftest] Sky Level: %d Required Exptime: %.2f" % (int(sky_lvl),req_exp))
+
+	if token == 1:
+		if sky_lvl <= 64000:
+			req_exp=test_time/(sky_lvl/target_counts)
+			
+			# account for gain difference between fast and slow rspeeds
+			if sys.argv[2]=='slow':
+				req_exp=req_exp/fast_slow_gain
+		
+		print("[Ftest] Sky Level: %d Required Exptime: %.2f" % (int(sky_lvl),req_exp))
+			
+		if sky_lvl > 64000:
+			req_exp=test_time*0.1
+			if req_exp<min_exp:
+	
+				# no need to account for difference in gains as using the lowest exp time
+				# and cannot go lower
+				req_exp=min_exp
+				print ("[Ftest] Sky level saturating, trying %.2f sec" % (req_exp))
+		
+	return sky_lvl, req_exp
+	
+
+def Flat(token,flat_time,data_loc,bias):
+	
+	os.system('flat %.2f' % (flat_time))
+	
+	time.sleep(3)
+	
+	t=GetLastImage(data_loc)
+	
 	h=pf.open('%s/%s' % (data_loc, t))
 	
 	# check counts in centre of image
@@ -210,13 +276,8 @@ def Flat(token,flat_time,data_loc):
 	x=h[4].shape[1]/2
 	
 	data=h[4].data[y-100:y+100,x-100:x+100]
-	
-	if sys.argv[2] == 'fast':
-		bias_lvl=bias_fast
-	if sys.argv[2] == 'slow':
-		bias_lvl=bias_slow
 		
-	sky_lvl=np.median(np.median(data, axis=0))-bias_lvl	
+	sky_lvl=np.median(np.median(data, axis=0))-bias
 	
 	# tweak the required exptime to stop rising and
 	# falling counts during calibration phase
@@ -248,55 +309,84 @@ def Offset(j):
 	
 	return 0
 
-# Main #
+##################################################
+############## Ctrl + C Trapping #################
+##################################################
 
+def signal_handler(signal, frame):
+	print('   Ctrl+C caught, shutting down…')
+	os.system('abort &')
+	sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
+
+
+######################################
+#                Main                #
+######################################
+
+# check command line args
+# make more detailed when FilterDB is full
 if len(sys.argv) < 4:
 	print("USAGE: py3.2 autoflat_test.py num rspeed f1, f2,..., fn\n")
 	sys.exit(1)
-			
+
+# get afternoon or morning			
 token = GetAMorPM()
 
+# get tonights folder
 data_loc=GetDataDir(token)
 if data_loc==0:
 	print("Error finding data folder, exiting!")
 	sys.exit()
 	
+# get the list of filters	
 n_filt,filt_list=GetFilters()
 
-# get name of filters as appear in WFC mimic
-# add to FiltersDB.txt
-#filt_seq=SortFilters(token,filt_list)
+# sort the filters
+filt_seq=SortFilters(token,filt_list)
 
-filt_seq=filt_list
-	
+# begin looping over required number of flats	
 for i in range(0,len(filt_seq)):
 	
 	j = 0	
 
+	# change filter
 	c1=ChangeFilter(filt_seq[i])
 	if c1 != 0:
 		print("Problem changing filter, exiting!\n")
 		sys.exit()
 	
+	# afternoon
 	if token == 0:
 		
 		# set a window and fast readout speed
 		print("Setting up FTest window and rspeed to fast...")
-		os.system('window 1 "[900:1100,1900:2100]"')
+		os.system('window 1 "[800:1200,2400:2800]"')
 		os.system('rspeed fast')
+
+		# get the bias level in real time to acount for any slight changes
+		# do for first flat only	
+		if i == 0:
+			bias_f,bias_s=GetBiasLevel(data_loc)
 		
 		# take an FTest image to check the sky level
 		print("Checking sky level...")
-		sky_lvl,req_exp=FTest(token,data_loc)
+		sky_lvl,req_exp=FTest(token,data_loc,bias_f)
 	
 		if req_exp > max_exp:
 			print ("It's too dark, quiting!")
+			if filt_seq[i] == filt_seq[-1]:
+				print("Disabling FTest window...")
+				os.system('window 1 disable')
+				print("Setting rspeed back to %s..." % (sys.argv[2]))
+				os.system('rspeed %s' % (sys.argv[2]))
 			break
 
 		# if the required exp time is less than the minimum
 		# loop checking the sky until it is in range
 		while req_exp < min_exp:
-			sky_lvl,req_exp=FTest(token,data_loc)
+			sky_lvl,req_exp=FTest(token,data_loc,bias_f)
 			print("[Sky Level]: %d counts - [Required Exptime]: %.2f sec - Waiting..." % (sky_lvl, req_exp))
 			time.sleep(15)
 		
@@ -311,7 +401,10 @@ for i in range(0,len(filt_seq)):
 			
 			while j < int(sys.argv[1]):
 				# take a flat at the last required exptime
-				sky_lvl,req_exp,t=Flat(token,req_exp,data_loc)
+				if sys.argv[2]=="fast":
+					sky_lvl,req_exp,t=Flat(token,req_exp,data_loc,bias_f)
+				if sys.argv[2]=="slow":
+					sky_lvl,req_exp,t=Flat(token,req_exp,data_loc,bias_s)
 				
 				if req_exp > max_exp:
 					print ("It's too dark, quiting!")
@@ -333,22 +426,27 @@ for i in range(0,len(filt_seq)):
 			# reset telescope pointing to 0 0 for next filter
 			o1=Offset(0)
 	
-
+	# morning
 	if token == 1:
 		
 		# set a window and fast readout speed
 		print("Setting up FTest window and rspeed to fast...")
-		os.system('window 1 "[900:1100,1900:2100]"')
+		os.system('window 1 "[800:1200,2400:2800]"')
 		os.system('rspeed fast')
+		
+		# get the bias level in real time to acount for any slight changes
+		# do for first flat only	
+		if i == 0:
+			bias_f,bias_s=GetBiasLevel(data_loc)
 		
 		# take an FTest image to check the sky level
 		print("Checking sky level...")
-		sky_lvl,req_exp=FTest(token,data_loc)
+		sky_lvl,req_exp=FTest(token,data_loc,bias_f)
 
 		# if the required exp time is less than the minimum
 		# loop checking the sky until it is in range
 		while req_exp > max_exp:
-			sky_lvl,req_exp=FTest(token,data_loc)
+			sky_lvl,req_exp=FTest(token,data_loc,bias_f)
 			print("[Sky Level]: %d counts - [Required Exptime]: %.2f sec - Waiting..." % (sky_lvl, req_exp))
 			time.sleep(15)
 		
@@ -363,11 +461,19 @@ for i in range(0,len(filt_seq)):
 			
 			while j < int(sys.argv[1]):
 				# take a flat at the last required exptime
-				sky_lvl,req_exp,t=Flat(token,req_exp,data_loc)
+				if sys.argv[2]=="fast":
+					sky_lvl,req_exp,t=Flat(token,req_exp,data_loc,bias_f)
+				if sys.argv[2]=="slow":
+					sky_lvl,req_exp,t=Flat(token,req_exp,data_loc,bias_s)
 				
 				# sky_lvl > 64000 and <-- removed to solve <2s issue at end of morning flats
 				if req_exp < min_exp:
 					print ("It's too bright, quiting!")
+					if filt_seq[i] == filt_seq[-1]:
+						print("Disabling FTest window...")
+						os.system('window 1 disable')
+						print("Setting rspeed back to %s..." % (sys.argv[2]))
+						os.system('rspeed %s' % (sys.argv[2]))
 					break
 	
 				# if the median count are within range accept the flat

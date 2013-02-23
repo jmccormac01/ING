@@ -7,16 +7,18 @@ import numpy as np
 
 token = 0
 
-f_db='/Users/James/Documents/ING/Autoflat/FilterDB.txt'
+f_db='/Users/James/Documents/ING/Scripts/WFC/autoflat/FilterDB.txt'
 f=open(f_db,'r').readlines()
 
-name,BoN,cen_wave,width=[],[],[],[]
+name,BoN,cen_wave,width,num,mimic=[],[],[],[],[],[]
 
 for i in range(0,len(f)):
 	name.append(f[i].split()[0])
 	cen_wave.append(f[i].split()[1])
 	width.append(f[i].split()[2])
 	BoN.append(f[i].split()[3])
+	num.append(f[i].split()[4])
+	mimic.append(f[i].split()[5])
 	
 f_list=sys.argv[1:]
 
@@ -25,16 +27,20 @@ id_n,cwl_n,wl_n,id_b,cwl_b,wl_b=[],[],[],[],[],[]
 # create 2 lists for narrow and broad band filters
 for i in range(0,len(f_list)):
 	for j in range(0,len(f)):
-		if f_list[i] == name[j]:
+		if f_list[i] == mimic[j]:
 			if BoN[j] == 'B':
-				id_b.append(name[j])
+				id_b.append(mimic[j])
 				cwl_b.append(cen_wave[j])
 				wl_b.append(width[j])
 			if BoN[j] == 'N':
-				id_n.append(name[j])
+				id_n.append(mimic[j])
 				cwl_n.append(cen_wave[j])
 				wl_n.append(width[j])
 	
+	if f_list[i] not in mimic:
+		print "Filter not found: %s" % (f_list[i])
+		
+		
 # sort the two lists
 if len(cwl_b) > 0:	
 	x=zip(cwl_b,wl_b,id_b)
