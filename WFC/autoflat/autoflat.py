@@ -1,8 +1,8 @@
 
 #########################################################
 #                                                       #
-#                  autoflat WFC v1.3                    #
-#                                                       #
+#                  autoflat WFC v1.4                    #
+#                     *not tested*                      #
 #                    James McCormac                     #
 #                                                       #
 #########################################################
@@ -20,6 +20,9 @@
 #                     fixed gain difference between fast and slow rspeeds, 
 #                     this was real cause of FTest predicting twice req_exp
 #   v1.4   06/03/13 - added usage before loading the modules
+#                     added a BiasLevelDB.txt file to save bias levels so 
+#                     they dont need worked out each time the script is run
+#
 #
 #   To do:
 #       Add windowed flats capability
@@ -54,6 +57,9 @@ min_exp = 2.0
 am_tweak = 0.75
 pm_tweak = 1.25
 fast_slow_gain=1.95
+
+f_db='/home/intobs/jmcc/FilterDB.txt'
+bias_db='/home/intobs/jmcc/BiasLevelDB.txt'
 
 
 # Functions #
@@ -100,7 +106,6 @@ def GetFilters():
 
 def SortFilters(token,f_list):
 
-	f_db='/home/intobs/jmcc/FilterDB.txt'
 	f=open(f_db,'r').readlines()
 
 	name,BoN,cen_wave,width,num,mimic=[],[],[],[],[],[]
@@ -184,39 +189,68 @@ def GetLastImage(data_loc):
 	return t
 
 
+# add to save bias to file and check there first for the current day
 def GetBiasLevel(data_loc):
 	
 	print("Getting fast and slow bias levels")
 	
-	# fast
-	os.system('bias') 
-	time.sleep(1)
+	# BiasLevelDB.txt e.g. format:
+	# 6 Mar 2013 bias_s bias_f
 	
-	t=GetLastImage(data_loc)
+	# check the BiasLevelDB.txt file for bias levels first
+	lday,lmonth,lyear,lbias_s,lbias_f=open(bias_db).readlines()[-1].split()[:5]
 	
-	h=pf.open('%s/%s' % (data_loc,t))
-	data=h[1].data
+	# get date now
+	now=ctime.now()
+	day = now.split()[2]
+	month = now.split()[1]
+	year = now.split()[-1]
 	
-	bias_f=np.median(np.median(data, axis=0))
+	# compare to last date from log, if different work out the bias level again
+	# if the day is the same just use what is in the database
+	if lday == day and lmonth == month and lyear == year:
+		print('Bias levels in database, using these values...')
+		bias_s = lbias_s
+		bias_f = lbias_f
 	
-	# slow
-	os.system('rspeed slow')
-	
-	os.system('bias')
-	time.sleep(1)
-	
-	t2=GetLastImage(data_loc)
-	
-	h2=pf.open('%s/%s' % (data_loc,t2))
-	data2=h2[1].data
-	
-	bias_s=np.median(np.median(data2, axis=0))
-	
-	print("Bias Slow: %.2f ADU" % (bias_s))
-	print("Bias Fast: %.2f ADU" % (bias_f))
-	
-	# set rspeed to fast again for FTest
-	os.system('rspeed fast')
+	if lday != day or lmonth != month or lyear != year:
+		
+		print('No bias levels in database, taking bias images to check...')
+		
+		# fast
+		os.system('bias') 
+		time.sleep(1)
+		
+		t=GetLastImage(data_loc)
+		
+		h=pf.open('%s/%s' % (data_loc,t))
+		data=h[1].data
+		
+		bias_f=np.median(np.median(data, axis=0))
+		
+		# slow
+		os.system('rspeed slow')
+		
+		os.system('bias')
+		time.sleep(1)
+		
+		t2=GetLastImage(data_loc)
+		
+		h2=pf.open('%s/%s' % (data_loc,t2))
+		data2=h2[1].data
+		
+		bias_s=np.median(np.median(data2, axis=0))
+		
+		print("Bias Slow: %.2f ADU" % (bias_s))
+		print("Bias Fast: %.2f ADU" % (bias_f))
+		
+		# save the bias levels to the BiasLevelDB.txt
+		f=open(bias_db,'a')
+		f.write("%s  %s  %s  %s  %s\n" % (day,month,year,bias_s,bias_f))
+		f.close()
+		
+		# set rspeed to fast again for FTest
+		os.system('rspeed fast')
 	
 	return bias_f, bias_s
 
@@ -329,7 +363,7 @@ signal.signal(signal.SIGINT, signal_handler)
 
 
 ######################################
-#                Main                #
+################ Main ################
 ######################################
 
 # get afternoon or morning			
