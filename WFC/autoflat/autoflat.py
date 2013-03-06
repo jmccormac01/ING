@@ -34,7 +34,7 @@ import sys
 # check command line args
 # make more detailed when FilterDB is full
 if len(sys.argv) < 4:
-	print("USAGE: py3.2 autoflat_test.py num rspeed f1, f2,..., fn\n")
+	print("USAGE: pyver autoflat.py num_flats_per_filt rspeed f1 f2 ... fn\n")
 	sys.exit(1)
 
 from datetime import date, timedelta
