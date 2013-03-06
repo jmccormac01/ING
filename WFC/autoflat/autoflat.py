@@ -19,16 +19,23 @@
 #                     too dark or bright to continue
 #                     fixed gain difference between fast and slow rspeeds, 
 #                     this was real cause of FTest predicting twice req_exp
-#
+#   v1.4   06/03/13 - added usage before loading the modules
 #
 #   To do:
 #       Add windowed flats capability
 #       Add binning capability
 
 
+import sys
+
+# check command line args
+# make more detailed when FilterDB is full
+if len(sys.argv) < 4:
+	print("USAGE: py3.2 autoflat_test.py num rspeed f1, f2,..., fn\n")
+	sys.exit(1)
 
 from datetime import date, timedelta
-import os, os.path, sys, time
+import os, os.path, time
 import pyfits as pf
 import numpy as np
 import signal
@@ -324,12 +331,6 @@ signal.signal(signal.SIGINT, signal_handler)
 ######################################
 #                Main                #
 ######################################
-
-# check command line args
-# make more detailed when FilterDB is full
-if len(sys.argv) < 4:
-	print("USAGE: py3.2 autoflat_test.py num rspeed f1, f2,..., fn\n")
-	sys.exit(1)
 
 # get afternoon or morning			
 token = GetAMorPM()
