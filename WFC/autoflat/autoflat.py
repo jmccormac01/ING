@@ -22,7 +22,10 @@
 #   v1.4   06/03/13 - added usage before loading the modules
 #                     added a BiasLevelDB.txt file to save bias levels so 
 #                     they dont need worked out each time the script is run
-#
+#          03/04/13 - trying the reverse filter order as suggested by ovidiu
+#                     to see if we get more flats.
+#                     fixed bug where autoflat quitted if one filter was out
+#                     of range. Now tries next filters until the end of the list
 #
 #   To do:
 #       Add windowed flats capability
@@ -52,7 +55,7 @@ offset_sleep = 5.0
 max_counts = 35000.0
 target_counts = 30000.0
 min_counts = 20000.0
-max_exp = 120.0
+max_exp = 200.0
 min_exp = 2.0
 am_tweak = 0.75
 pm_tweak = 1.25
@@ -147,15 +150,18 @@ def SortFilters(token,f_list):
 		y.sort()
 		cwl_n,wl_n,id_n=zip(*y)
 	
+	# test using filters in reverse order
 	# afternoon	
 	if token == 0:
-		flat_list=list(id_n)+list(id_b)
+		#flat_list=list(id_n)+list(id_b)
+		flat_list=list(id_n)[::-1]+list(id_b)[::-1]
 		print("Afternoon filter order:")
 		print(flat_list)
 
 	# morning
 	if token == 1:
-		flat_list=list(id_b)[::-1]+list(id_n)[::-1]
+		#flat_list=list(id_b)[::-1]+list(id_n)[::-1]
+		flat_list=list(id_b)+list(id_n)
 		print("Morning filter order:")
 		print(flat_list)
 	
@@ -306,7 +312,7 @@ def Flat(token,flat_time,data_loc,bias):
 	
 	os.system('flat %.2f' % (flat_time))
 	
-	time.sleep(3)
+	time.sleep(1)
 	
 	t=GetLastImage(data_loc)
 	
@@ -410,13 +416,14 @@ for i in range(0,len(filt_seq)):
 		sky_lvl,req_exp=FTest(token,data_loc,bias_f)
 	
 		if req_exp > max_exp:
-			print ("It's too dark, quiting!")
+			print ("It's too dark for this filter, next!")
 			if filt_seq[i] == filt_seq[-1]:
+				print ("No filters left, quiting!")
 				print("Disabling FTest window...")
 				os.system('window 1 disable')
 				print("Setting rspeed back to %s..." % (sys.argv[2]))
 				os.system('rspeed %s' % (sys.argv[2]))
-			break
+				break
 
 		# if the required exp time is less than the minimum
 		# loop checking the sky until it is in range
@@ -478,6 +485,18 @@ for i in range(0,len(filt_seq)):
 		print("Checking sky level...")
 		sky_lvl,req_exp=FTest(token,data_loc,bias_f)
 
+		# sky_lvl > 64000 and <-- removed to solve <2s issue at end of morning flats
+		if req_exp < min_exp:
+			print ("It's too bright for this filter, next!")
+			if filt_seq[i] == filt_seq[-1]:
+				print ("No filters left, quiting!")
+				print("Disabling FTest window...")
+				os.system('window 1 disable')
+				print("Setting rspeed back to %s..." % (sys.argv[2]))
+				os.system('rspeed %s' % (sys.argv[2]))
+				break
+
+
 		# if the required exp time is less than the minimum
 		# loop checking the sky until it is in range
 		while req_exp > max_exp:
@@ -501,16 +520,10 @@ for i in range(0,len(filt_seq)):
 				if sys.argv[2]=="slow":
 					sky_lvl,req_exp,t=Flat(token,req_exp,data_loc,bias_s)
 				
-				# sky_lvl > 64000 and <-- removed to solve <2s issue at end of morning flats
 				if req_exp < min_exp:
 					print ("It's too bright, quiting!")
-					if filt_seq[i] == filt_seq[-1]:
-						print("Disabling FTest window...")
-						os.system('window 1 disable')
-						print("Setting rspeed back to %s..." % (sys.argv[2]))
-						os.system('rspeed %s' % (sys.argv[2]))
 					break
-	
+				
 				# if the median count are within range accept the flat
 				# increase the counter and offset telescope for next flat
 				if sky_lvl > min_counts and sky_lvl < max_counts:
