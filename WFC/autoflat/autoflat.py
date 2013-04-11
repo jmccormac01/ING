@@ -26,6 +26,9 @@
 #                     to see if we get more flats.
 #                     fixed bug where autoflat quitted if one filter was out
 #                     of range. Now tries next filters until the end of the list
+#          11/04/13 - reversing filter order was inconclusive, replacing normal
+#                     order. U has been added to narrow band filters in DB as
+#                     the throughput is so bad
 #
 #   To do:
 #       Add windowed flats capability
@@ -50,7 +53,7 @@ print("Modules loaded...")
 
 # Global Varibales #
 
-filt_sleep = 15.0
+filt_sleep = 10.0
 offset_sleep = 5.0
 max_counts = 35000.0
 target_counts = 30000.0
@@ -153,15 +156,15 @@ def SortFilters(token,f_list):
 	# test using filters in reverse order
 	# afternoon	
 	if token == 0:
-		#flat_list=list(id_n)+list(id_b)
-		flat_list=list(id_n)[::-1]+list(id_b)[::-1]
+		flat_list=list(id_n)+list(id_b)
+		#flat_list=list(id_n)[::-1]+list(id_b)[::-1]
 		print("Afternoon filter order:")
 		print(flat_list)
 
 	# morning
 	if token == 1:
-		#flat_list=list(id_b)[::-1]+list(id_n)[::-1]
-		flat_list=list(id_b)+list(id_n)
+		flat_list=list(id_b)[::-1]+list(id_n)[::-1]
+		#flat_list=list(id_b)+list(id_n)
 		print("Morning filter order:")
 		print(flat_list)
 	
@@ -207,7 +210,7 @@ def GetBiasLevel(data_loc):
 	lday,lmonth,lyear,lbias_s,lbias_f=open(bias_db).readlines()[-1].split()[:5]
 	
 	# get date now
-	now=ctime.now()
+	now=time.ctime()
 	day = now.split()[2]
 	month = now.split()[1]
 	year = now.split()[-1]
@@ -216,8 +219,8 @@ def GetBiasLevel(data_loc):
 	# if the day is the same just use what is in the database
 	if lday == day and lmonth == month and lyear == year:
 		print('Bias levels in database, using these values...')
-		bias_s = lbias_s
-		bias_f = lbias_f
+		bias_s = float(lbias_s)
+		bias_f = float(lbias_f)
 	
 	if lday != day or lmonth != month or lyear != year:
 		
@@ -271,6 +274,8 @@ def FTest(token,data_loc,bias_f):
 	# test when at testscope
 	os.system('glance %d' % (test_time))
 	
+	time.sleep(3)
+	
 	# code to get median counts from test image
 	h=pf.open('%s/s1.fit' % (data_loc))
 	data=h[1].data
@@ -312,17 +317,17 @@ def Flat(token,flat_time,data_loc,bias):
 	
 	os.system('flat %.2f' % (flat_time))
 	
-	time.sleep(1)
+	time.sleep(3)
 	
 	t=GetLastImage(data_loc)
 	
-	h=pf.open('%s/%s' % (data_loc, t))
+	h=pf.open('%s/%s' % (data_loc, t))[4]
 	
 	# check counts in centre of image
-	y=h[4].shape[0]/2
-	x=h[4].shape[1]/2
+	y=h.shape[0]/2
+	x=h.shape[1]/2
 	
-	data=h[4].data[y-100:y+100,x-100:x+100]
+	data=h.data[y-100:y+100,x-100:x+100]
 		
 	sky_lvl=np.median(np.median(data, axis=0))-bias
 	
@@ -361,7 +366,7 @@ def Offset(j):
 ##################################################
 
 def signal_handler(signal, frame):
-	print('   Ctrl+C caught, shutting down…')
+	print('   Ctrl+C caught, shutting down...')
 	os.system('abort &')
 	sys.exit(0)
 
