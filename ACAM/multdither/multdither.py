@@ -24,6 +24,7 @@
 #                     Tested at telescope and works perfectly
 #   v1.6   24/10/12 - Added WaitFor* functions to check noticeboard between TCS/ICS calls
 #   v1.7   13/02/13 - Added check for guider stability so not to guide on trailed star
+#	v1.8   15/06/13 - Added 31 position spiral pattern instead of the cross pattern
 #
 
 import sys, os
@@ -39,24 +40,38 @@ if len(sys.argv) != 6:
 	exit()
 
 if sys.argv[4] != "on" and sys.argv[4] != "off":
-	print "Invalid autoguider value, enter on/off"
+	print "*Invalid autoguider value*, enter on/off"
+	exit()
+
+if sys.argv[4] == "on" and int(sys.argv[1]) > 30:
+	print "*Cannot dither by more than 30 positions*\n*Run observations in smaller blocks*"
 	exit()
 	
-if sys.argv[4] == "on" and int(sys.argv[1]) > 10:
-	print "Do you really want more than 10 guided dither points (y/n)?"
+if sys.argv[4] == "on" and int(sys.argv[1]) > 20:
+	print "Do you really want more than 20 guided dither points (y/n)?"
 	yn1=raw_input()
 	if yn1 != "yes" and yn1 != "y":
+		print "Exiting..."
 		exit()
-	z=raw_input("CHECK WITH TO GUIDING WON'T BE LOST, THE PRESS ENTER") 
+	z=raw_input("*CHECK WITH THE TO THAT GUIDING WON'T BE LOST*, THEN PRESS ENTER") 
 
+
+##################################################
+############ DEBUGGING MODE ON/OFF? ##############
+##################################################
+
+# 0 = off
+# 1 = on	
+DEBUG = 0
 
 ##################################################
 ############## Ctrl + C Trapping #################
 ##################################################
 
-def signal_handler(signal, frame):
+def signal_handler(signal,frame):
 	print '   Ctrl+C caught, shutting down...'
-	os.system('abort acam &')
+	if DEBUG == 0:
+		os.system('abort acam &')
 	sys.exit(0)
 
 signal.signal(signal.SIGINT, signal_handler)
@@ -120,11 +135,6 @@ def WaitForGuiding():
 				os.system('tcsuser "autoguide on"')
 				time.sleep(2)
 		
-		
-	
-# 0 = off
-# 1 = on	
-DEBUG = 0
 
 ##################################################
 ############## Autoguiding ON/OFF? ###############
@@ -132,25 +142,28 @@ DEBUG = 0
 
 if sys.argv[4] == "on":
 	
-	stat=GetTeleStatus()
-	if stat != "GUIDING":
-		yn=raw_input("\nTELESCOPE NOT GUIDING, START AUTOGUIDER, THEN PRESS ENTER\n")
-		done=WaitForGuiding()
+	print "Switching on the guider..."
+	if DEBUG == 0:
+		stat=GetTeleStatus()
+		if stat != "GUIDING":
+			yn=raw_input("\nTELESCOPE NOT GUIDING, START AUTOGUIDER, THEN PRESS ENTER\n")
+			done=WaitForGuiding()
 	
 	
 if sys.argv[4] == "off":
 	
-	stat=GetTeleStatus()
-	if stat != "TRACKING":
-		if stat == "GUIDING":
-			print "\nTELESCOPE IS GUIDING, STOPPING GUIDER...\n"
-			if DEBUG == 0:
+	print "Checking telescope is tracking..."
+	if DEBUG == 0:
+		stat=GetTeleStatus()
+		if stat != "TRACKING":
+			if stat == "GUIDING":
+				print "\nTELESCOPE IS GUIDING, STOPPING GUIDER...\n"
 				os.system('tcsuser "autoguide off"')
-			done=WaitForTracking()
-		
-		if stat == "MOVING":
-			print "\nTELESCOPE IS MOVING, WAITING...\n"
-			done=WaitForTracking()
+				done=WaitForTracking()
+			
+			if stat == "MOVING":
+				print "\nTELESCOPE IS MOVING, WAITING...\n"
+				done=WaitForTracking()
 				
 
 
@@ -167,91 +180,75 @@ k=0
 
 # take first image undithered
 print "Offset [1]: 0 0"
+print "Image [1]"
 if DEBUG == 0:
-	print "Image [1]"
 	os.system('run acam %d "%s 0 0" &' % (int(sys.argv[2]),sys.argv[5]))
 
 time.sleep(st)
 
+# preset spiral pattern
+spiralx=[0,1,1,0,-1,-1,-1, 0, 1, 2,2,2,2,1,0,-1,-2,-2,-2,-2,-2,-1, 0, 1, 2, 3, 3,3,3,3,3]
+spiraly=[0,0,1,1, 1, 0,-1,-1,-1,-1,0,1,2,2,2, 2, 2, 1, 0,-1,-2,-2,-2,-2,-2,-2,-1,0,1,2,3]
+
 # start loop over number of images required - 1
 while i < int(sys.argv[1]):
+		
+	x=int(spiralx[i])*int(sys.argv[3])
+	y=int(spiraly[i])*int(sys.argv[3])
+	i=i+1
 	
-	# increase step size accordingly
-	t=int(sys.argv[3])+(int(sys.argv[3])*k)
-		
-	# cycle through box pattern of ++, --, +-, -+
-	for j in range(0,4):
-	
-		if j == 0:
-			xs=1
-			ys=1
+	# check the image number just in case
+	if i > int(sys.argv[1]):
+		break
 			
-		if j == 1:
-			xs=-1
-			ys=-1
-			
-		if j == 2:
-			xs=-1
-			ys=1
-			
-		if j == 3:
-			xs=1
-			ys=-1
-		
-		x=t*xs
-		y=t*ys
-		i=i+1
-		
-		if i > int(sys.argv[1]):
-			break
-				
-		# check if guiding is used and turn it off for dithering if needed
-		if sys.argv[4] == "on":
-			print "Autoguider OFF"
-			if DEBUG == 0:
-				os.system('tcsuser "autoguide off"')
+	# check if guiding is used and turn it off for dithering if needed
+	if sys.argv[4] == "on":
+		print "Autoguider OFF"
+		if DEBUG == 0:
+			os.system('tcsuser "autoguide off"')
 			done=WaitForTracking()
-		
-		print "Offset [%d]: %d %d..." % (i, x, y)
+	
+	print "Offset [%d]: %d %d..." % (i, x, y)
+	if DEBUG == 0:
 		os.system('offset arc %d %d' % (x,y))
 		done=WaitForTracking()
-				
-		# resumme guiding if necessary
-		if sys.argv[4] == "on":
-			print "Autoguider ON..."
-			if DEBUG == 0:
-				# ag on is now done inside WaitForGuiding() v1.7
-				#os.system('tcsuser "autoguide on"')
-				done=WaitForGuiding()
-		
-		# wait for CCD clocks to be IDLE	
+			
+	# resumme guiding if necessary
+	if sys.argv[4] == "on":
+		print "Autoguider ON..."
+		if DEBUG == 0:
+			done=WaitForGuiding()
+	
+	# wait for CCD clocks to be IDLE
+	print "Waiting for CCD to idle..."	
+	if DEBUG == 0:
 		idle=WaitForIdle()
 		if idle != 0:
 			print "Unexpected response while waiting for CCD to idle, aborting!"
 			os.system('abort acam &')
 			exit()
-						
-		# take the next ACAM image
-		if DEBUG == 0:
-			print "Image [%d]" % (i)
-			os.system('run acam %d "%s %d %d" &' % (int(sys.argv[2]),sys.argv[5], x, y))
-			time.sleep(st)		
 					
-	k=k+1
+	# take the next ACAM image
+	print "Image [%d]" % (i)
+	if DEBUG == 0:
+		os.system('run acam %d "%s %d %d" &' % (int(sys.argv[2]),sys.argv[5], x, y))
+	time.sleep(st)		
+					
 
 # return the telescope to the original position
 if sys.argv[4] == "on":
+	print "Switching off guider..."
 	if DEBUG == 0:
 		os.system('tcsuser "autoguide off"')
 		done=WaitForTracking()
 
+print "Returning telescope to 0 0..."
 if DEBUG == 0:
 	os.system('offset arc 0 0')
 	done=WaitForTracking()
 
 if sys.argv[4] == "on":
+	print "Switching guiding back on..."
 	if DEBUG == 0:
-		# ag on is now done inside WaitForGuiding() v1.7
-		#os.system('tcsuser "autoguide on"')
 		done=WaitForGuiding()
 
