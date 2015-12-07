@@ -1,7 +1,7 @@
 
 #########################################################
 #                                                       #
-#               multdither.py ACAM v2.4                 #
+#               multdither.py ACAM v2.1                 #
 #                                                       #
 #           IF AUTOGUIDING PLEASE ENSURE                #
 #        GUIDING IS ON BEFORE RUNNING SCRIPT!           #
@@ -30,25 +30,81 @@
 #                     autoguiding would not stop correctly
 #   v2.1   15/11/13 - Fix integer exposure times error, floats now accepted. same for 
 #                     step sizes, although expected to be used less
-#   v2.2   22/11/13 - Added DEBUG and TEST methods to commandline. 
-#                     Added CheckCommandLine()
-#                     This substantially upgrades checks on commandline with support
-#                     for testing new scripts and debugging also
-#   v2.3   03/01/14 - Removed the 'Press Enter' command after showing how to abort
-#                     this was stopping mcol everytime it calls multdither!!
-#                     Added BELL to the end of the script
-#   v2.4   21/01/14 - Added error message when guiding does not resume 
-# 
+#
 
 import sys, os
 import time, signal, string, select
 
+
 ##################################################
-######### CHANGE BEFORE TESTING ON ICS ###########
+############## Commandline Check #################
 ##################################################
 
-testscript = '/home/whtobs/acam/jmcc'
-#testscript = '~/Documents/ING/Scripts/ACAM/multdither/test'
+if len(sys.argv) != 6:
+	print "\nUSAGE: python multdither.py n_images exptime step_size auto_on/off title"
+	print "auto_on/off is for autoguider on or off"
+	print "e.g. python multdither.py 10 100 5 auto_on QUSg\n"
+	exit()
+
+if sys.argv[4] != "auto_on" and sys.argv[4] != "auto_off":
+	print "*Invalid autoguider value*, enter auto_on/off"
+	exit()
+
+if sys.argv[4] == "auto_on" and int(sys.argv[1]) > 30:
+	print "*Cannot dither by more than 30 positions*\n*Run observations in smaller blocks*"
+	exit()
+	
+if sys.argv[4] == "auto_on" and int(sys.argv[1]) > 20:
+	print "Do you really want more than 20 guided dither points (y/n)?"
+	yn1=raw_input()
+	if yn1 != "yes" and yn1 != "y":
+		print "Exiting..."
+		exit()
+	z=raw_input("*CHECK WITH THE TO THAT GUIDING WON'T BE LOST*, THEN PRESS ENTER") 
+
+
+##################################################
+############ DEBUGGING MODE ON/OFF? ##############
+##################################################
+
+# 0 = off
+# 1 = on	
+DEBUG = 0
+
+##################################################
+############ Preset Spiral Pattern ###############
+##################################################
+
+spiralx=[0,1,1,0,-1,-1,-1, 0, 1, 2,2,2,2,1,0,-1,-2,-2,-2,-2,-2,-1, 0, 1, 2, 3, 3,3,3,3,3]
+spiraly=[0,0,1,1, 1, 0,-1,-1,-1,-1,0,1,2,2,2, 2, 2, 1, 0,-1,-2,-2,-2,-2,-2,-2,-1,0,1,2,3]
+
+for i in range(0,len(spiralx)):
+	spiralx[i]=int(spiralx[i])*float(sys.argv[3])
+	spiraly[i]=int(spiraly[i])*float(sys.argv[3])
+
+# figure out if spiral pattern will be too big for guiding
+sx=spiralx[:int(sys.argv[1])]
+sy=spiraly[:int(sys.argv[1])]
+
+print "\nRequested spiral size: "
+print "\tX: %d'' --> %d''" % (min(sx), max(sx))
+print "\tY: %d'' --> %d''" % (min(sy), max(sy))
+
+if sys.argv[4] == "auto_on":
+	if min(sx) <= -30 or min(sy) <= -30 or max(sx) >= 30 or max(sy) >= 30:
+		print "\nOuter sprial points will lose guiding!" 
+		print "Please run smaller imaging blocks or step sizes"
+		print "Min/Max dither positions = -20'' and +20''\n"
+		exit()
+	
+	if min(sx) < -20 and min(sx) > -30 or min(sy) < -20 and min(sy) > -30 or max(sx) > 20 and max(sy) < 30 or max(sy) > 20 and max(sy) < 30:
+		print "\n*MAKE SURE GUIDE STAR IS WELL CENTRED*"
+		print "This observing block is close to the limits of dithered guiding!"
+		print "Confirm with TO, continue? (y/n)"
+		yn2=raw_input()
+		if yn2 != "yes" and yn2 != "y":
+			print "Exiting..."
+			exit()
 
 ##################################################
 ############## Ctrl + C Trapping #################
@@ -126,13 +182,9 @@ def WaitForNoGuiding():
 			counter = counter +1
 			
 			if counter > 5:
-				print "WARNING: The autoguider has not turned OFF after 5 attempts (10 sec)!"
+				print "WARNING: The autoguider has not turned off after 5 attempts (10 sec)!"
 				print "WARNING: Press 'Autoguide off' at the TCS to stop the guider."
 				print "WARNING: When the autoguider has been stopped this script will continue as normal"
-				os.system('bell')
-				time.sleep(1)
-				os.system('bell')
-				counter = 0
 						
 		if stat == "TRACKING":
 			return 0
@@ -141,8 +193,6 @@ def WaitForNoGuiding():
 def WaitForGuiding():
 	
 	stat=""
-	
-	counter = 0
 		
 	while stat != "GUIDING":
 		stat=os.popen('ParameterNoticeBoardLister -i TCS.telstat').readline().split('\n')[0]
@@ -166,175 +216,12 @@ def WaitForGuiding():
 			if abs(gsx_n-gsx) < 10 and abs(gsy_n-gsy) < 10:
 				os.system('tcsuser "autoguide on"')
 				time.sleep(2)
-				continue
-		
-		if stat != "GUIDING":
-			time.sleep(2)
-			counter = counter + 5
-			
-			if counter > 25:
-				print "WARNING: The autoguider has not turned ON after 5 attempts (30 sec)!"
-				print "WARNING: Please check guide star is ok."
-				print "WARNING: When the autoguider has been restarted this script will continue as normal"
-				os.system('bell')
-				time.sleep(1)
-				os.system('bell')
-				counter = 0
-
-
-def CheckCommandLine():
-	
-	if len(sys.argv) < 6:
-		print '\nUSAGE: multdither acam n_images exptime step_size auto_on/off "title"'
-		print "auto_on/off is for autoguider on or off"
-		print 'e.g. multdither acam 10 100 5 auto_on "QUSg"\n'
-		exit()
-	
-	returnval = 0
-	
-	# function to check command line args [1], [2] and [3] are numbers
-	for i in range(0,3):
-		try:
-			if i == 0:
-				int(sys.argv[i+1])
-			if i == 1:
-				float(sys.argv[i+1])
-			if i == 2:
-				float(sys.argv[i+1])
-		except ValueError:
-			if i==0:
-				print "Image number is INVALID!"
-				returnval = returnval + 1
-			if i==1:
-				print "Exposure time is INVALID!"
-				returnval = returnval + 1
-			if i==2:
-				print "Step size is INVALID!"
-				returnval = returnval + 1			 
-		else:
-			if i==0:
-				print "Image number is valid..."
-			if i==1:
-				print "Exposure time is valid..."
-			if i==2:
-				print "Step size is valid..."		
-
-	# check auto_on and off commands are correct
-	if sys.argv[4] != "auto_on" and sys.argv[4] != "auto_off":
-		print "Autoguider request is INVALID! Enter auto_on or auto_off"
-		returnval = returnval + 1 
-	else:
-		print "Autoguider request is valid..."
-		
-	if sys.argv[5] == 'debug' or sys.argv[5] == 'DEBUG' or sys.argv[5] == 'test' or sys.argv[5] == 'TEST':
-		print "Image name INVALID! Cannot use 'debug' or 'test'"
-		returnval = returnval + 1
-	else:
-		print "Image name is valid..."
-
-	return returnval
-
-
-##################################################
-############## Commandline Check #################
-##################################################
-
-print "\nChecking command line arguments...\n"
-
-# make checks on all the numbers!
-chkd=CheckCommandLine()
-if chkd != 0:
-	print "Problems detected on command line, try again. Exiting...\n"
-	exit()
-
-# check DEBUG and/or TEST
-if 'DEBUG' in sys.argv or 'debug' in sys.argv:
-	DEBUG = 1
-	print "\n*************************************************"
-	print "************ ENTERING DEBUGGING MODE ************"
-	print "*** NO IMAGES WILL BE TAKEN. SIMULATION ONLY! ***"
-	print "*************************************************\n"
-else:	
-	DEBUG = 0
-
-if 'TEST' in sys.argv or 'test' in sys.argv:
-	TEST = 1
-	print "\n*************************************************"
-	print "************** RUNNING TEST MODE! ***************"
-	print "*************************************************\n"
-	
-	print "Running test script in: "
-	print "%s" % (testscript)
-	
-	if DEBUG == 1:	
-		os.system('python %s/multdither.py %s %s %s %s %s debug' % (testscript, sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]))
-	if DEBUG == 0:	
-		os.system('python %s/multdither.py %s %s %s %s %s' % (testscript, sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]))
-	exit()
-else:
-	TEST = 0 
-
-if sys.argv[4] == "auto_on" and int(sys.argv[1]) > 30:
-	print "*Cannot dither by more than 30 positions*\n*Run observations in smaller blocks*"
-	exit()
-	
-if sys.argv[4] == "auto_on" and int(sys.argv[1]) > 20:
-	print "Do you really want more than 20 guided dither points (y/n)?"
-	yn1=raw_input()
-	if yn1 != "yes" and yn1 != "y":
-		print "Exiting..."
-		exit()
-	z=raw_input("*CHECK WITH THE TO THAT GUIDING WON'T BE LOST*, THEN PRESS ENTER") 
-
-# how to abort
-print "\nTo ABORT this script: "
-print "1) Press ctrl+c at anytime - or -"
-print "2) type 'q' and press ENTER"
-print "The script should stop and abort ACAM imaging shortly after.\n"
-#raw_input('Press ENTER to continue...')	
-
-
-##################################################
-############ Preset Spiral Pattern ###############
-##################################################
-
-spiralx=[0,1,1,0,-1,-1,-1, 0, 1, 2,2,2,2,1,0,-1,-2,-2,-2,-2,-2,-1, 0, 1, 2, 3, 3,3,3,3,3]
-spiraly=[0,0,1,1, 1, 0,-1,-1,-1,-1,0,1,2,2,2, 2, 2, 1, 0,-1,-2,-2,-2,-2,-2,-2,-1,0,1,2,3]
-
-for i in range(0,len(spiralx)):
-	spiralx[i]=int(spiralx[i])*float(sys.argv[3])
-	spiraly[i]=int(spiraly[i])*float(sys.argv[3])
-
-# figure out if spiral pattern will be too big for guiding
-sx=spiralx[:int(sys.argv[1])]
-sy=spiraly[:int(sys.argv[1])]
-
-print "Requested spiral size: "
-print "\tX: %d'' --> %d''" % (min(sx), max(sx))
-print "\tY: %d'' --> %d''" % (min(sy), max(sy))
-
-if sys.argv[4] == "auto_on":
-	if min(sx) <= -30 or min(sy) <= -30 or max(sx) >= 30 or max(sy) >= 30:
-		print "\nOuter sprial points will lose guiding!" 
-		print "Please run smaller imaging blocks or step sizes"
-		print "Min/Max dither positions = -20'' and +20''\n"
-		exit()
-	
-	if min(sx) < -20 and min(sx) > -30 or min(sy) < -20 and min(sy) > -30 or max(sx) > 20 and max(sy) < 30 or max(sy) > 20 and max(sy) < 30:
-		print "\n*MAKE SURE GUIDE STAR IS WELL CENTRED*"
-		print "This observing block is close to the limits of dithered guiding!"
-		print "Confirm with TO, continue? (y/n)"
-		yn2=raw_input()
-		if yn2 != "yes" and yn2 != "y":
-			print "Exiting..."
-			exit()
 		
 
 ##################################################
-###################### Main ######################
+############## Autoguiding ON/OFF? ###############
 ##################################################
 
-# autoguiding on or off?
 if sys.argv[4] == "auto_on":
 	
 	print "Switching on the guider..."
@@ -360,6 +247,11 @@ if sys.argv[4] == "auto_off":
 				print "\nTELESCOPE IS MOVING, WAITING...\n"
 				done=WaitForTracking()
 				
+
+
+##################################################
+###################### Main ######################
+##################################################
 	
 # set +3s delay to demanded exposure time for starting offsets
 st=float(sys.argv[2])+3
@@ -369,18 +261,18 @@ i=1
 k=0
 
 # take first image undithered
-print "Offset [1]: 0.0 0.0"
+print "Offset [1]: 0 0"
 print "Image [1]"
 if DEBUG == 0:
-	os.system('run acam %.1f "%s 0.0 0.0" &' % (float(sys.argv[2]),sys.argv[5]))
+	os.system('run acam %d "%s 0 0" &' % (float(sys.argv[2]),sys.argv[5]))
 
 time.sleep(st)
 
 # start loop over number of images required - 1
 while i < int(sys.argv[1]):
 		
-	x=float(spiralx[i])
-	y=float(spiraly[i])
+	x=int(spiralx[i])
+	y=int(spiraly[i])
 	i=i+1
 	
 	# check the image number just in case
@@ -394,9 +286,9 @@ while i < int(sys.argv[1]):
 			os.system('tcsuser "autoguide off"')
 			done=WaitForNoGuiding()
 	
-	print "Offset [%d]: %.1f %.1f..." % (i, float(x), float(y))
+	print "Offset [%d]: %d %d..." % (i, x, y)
 	if DEBUG == 0:
-		os.system('offset arc %.1f %.1f' % (float(x),float(y)))
+		os.system('offset arc %d %d' % (x,y))
 		done=WaitForTracking()
 			
 	# resumme guiding if necessary
@@ -417,7 +309,7 @@ while i < int(sys.argv[1]):
 	# take the next ACAM image
 	print "Image [%d]" % (i)
 	if DEBUG == 0:
-		os.system('run acam %.1f "%s %.1f %.1f" &' % (float(sys.argv[2]),sys.argv[5], float(x), float(y)))
+		os.system('run acam %d "%s %d %d" &' % (float(sys.argv[2]),sys.argv[5], x, y))
 	time.sleep(st)		
 	
 	if check_if_need_to_quit():
@@ -431,9 +323,9 @@ if sys.argv[4] == "auto_on":
 		os.system('tcsuser "autoguide off"')
 		done=WaitForNoGuiding()
 
-print "Returning telescope to 0.0 0.0..."
+print "Returning telescope to 0 0..."
 if DEBUG == 0:
-	os.system('offset arc 0.0 0.0')
+	os.system('offset arc 0 0')
 	done=WaitForTracking()
 
 if sys.argv[4] == "auto_on":
@@ -441,4 +333,3 @@ if sys.argv[4] == "auto_on":
 	if DEBUG == 0:
 		done=WaitForGuiding()
 
-os.system('bell')

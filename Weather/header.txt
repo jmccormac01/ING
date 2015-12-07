@@ -1,0 +1,3 @@
+    Time  Wspd Wdr  Gust  airT %RH  Press  Slr  Bore  Soil W  Dust  Temp %RH  Mirr   Dew  Wspd  airT %RH W
+         |                      MAIN MAST                          |     INTERNAL       |      LOCAL
+         

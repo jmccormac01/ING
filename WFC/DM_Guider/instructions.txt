@@ -1,0 +1,35 @@
+Introduction:
+For high-precision time-series photometry guiding is extremely important, however, the WFC guiding is not really optimised for this.
+
+To overcome this, there is a python script that will use the science images to determine the offset of the telescope and correct for this. The script also handles taking the exposures as well and will continue to expose until the routine is stopped by pressing 'q'.
+
+The guiding script is located in /home/intobs/ and should be called from the ICS using:
+
+/int/ObservingSystemSupportPackages/python-3.2.2/bin/python3.2 do_obs.py exp_time [x0 y0 box size dRA dDEC datadir reg_file] 
+
+with:
+
+    exposure_time       -   exposure time in seconds
+    x0, y0              -   approximate coordinates of star to guide
+                            if either is omitted or is set to less than 
+                            (boxsize+30) from the edge of the image, 
+                            the code will search for the brightest star
+                            in the field. 
+                            NOTE: this is very time-consuming, and should be
+                            avoided if possible
+    box_size            -   half-size of the box used for the guiding
+                            should be large enough to include the full PSF
+                            with a buffer of at least 10 pixels.
+                            By default the box-size is set to 60 pixels
+    dRA                     Current RA offset for offset arc
+    dDEC                    Current DEC offset for offset arc
+    directory_for_data  -   directory where the data are stored. If not 
+                            provided, the code will use the latest directory
+                            in /obsdata/inta/ 
+    ref_file            -   Reference file, when restarting the script
+
+Except for the exposure time all other variables are optional, however, it is recommended to specify both [x0, y0] and box_size in order to speed up the guiding. The easiest way to determine these three parameters is to open the latest image in ds9 (make sure you display CCD4), and place a circular region that encompasses the star you want to guide on. Use the position of this circle for x0 & y0, and the radius+10 pixels as the box-size.
+
+Known issues:
+ - The guiding script works with windowed data, however, if the y-position of the window extends above approximately 4000 pixels, the orientation of the images changes causing the guiding scripts to fail.
+ - The guiding script only guides on CCD4.

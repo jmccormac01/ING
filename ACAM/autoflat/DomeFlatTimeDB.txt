@@ -1,0 +1,1 @@
+SlnR	10	5	9W=On,25W=Off,150W=Off,500W=Off,500W=Off

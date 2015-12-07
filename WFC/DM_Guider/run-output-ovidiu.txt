@@ -1,0 +1,1178 @@
+Last login: Wed Jul 24 10:08:57 from slovpn12.ing.iac
+Sun Microsystems Inc.   SunOS 5.8       Generic Patch   October 2001
+intobs@lpss7> obssys
+
+----------------------------
+Observing systems available:
+----------------------------
+ 8: IDS+REDPLUS2
+ 7: IDS+EEV10
+ 6: IDS+TEK5
+ 5: Shack-Hartmann Test
+ 4: WFC
+ 0: give up and exit
+Please choose a system > 4
+
+---------------------------------------------------------
+Telescope: INT  Instrument: WFC           
+Detector:  WFC  Observing station: SYS    
+OSCAR System: release                                     
+Give the command startobssys to start/restart the system.
+Use shutdownobssys to close it down after use.           
+---------------------------------------------------------
+
+SYS> startobssys
+inticsdisplay is alive
+inticsdisplay is alive
+161.72.6.108 is alive
+-----------------------------------------------------
+ startwfc.csh
+-----------------------------------------------------
+ 
+------------------------------------------------------
+startids: Step 0: execute shutdown first (stopwfc.csh)
+------------------------------------------------------
+------------------------------------------------------
+startwfc: Step 1: start the DRAMA message-net...
+------------------------------------------------------
+
+IMP Receiver task starting on lpss7.
+Logging startup sequence from file /int/depot/release/43/bin/IMP_Startup.lpss7.
+Line 19: Log startup sequence
+Line 20: Use port 50002
+Line 21: Pulse connections to lpss14  every 60 seconds
+Line 22: Pulse connections to lpas2   every 30 seconds
+Line 23: Pulse connections to lpvme01 every 30 seconds
+IMP Receiver: startup sequence complete on lpss7
+
+IMP Transmitter task starting on lpss7.
+Logging startup sequence from file /int/depot/release/43/bin/IMP_Startup.lpss7.
+Line 19: Log startup sequence
+Line 20: Use port 50002
+Line 21: Pulse connections to lpss14  every 60 seconds
+Line 22: Pulse connections to lpas2   every 30 seconds
+Line 23: Pulse connections to lpvme01 every 30 seconds
+IMP Transmitter: startup sequence complete on lpss7
+-----------------------------------------------------
+startwfc: Step 2: check for tasks already loaded...
+-----------------------------------------------------
+Starting remotly Sound Server on INT ICS Display
+Authentication successful.
+[1] 22179
+------------------------------------------------------
+startwfc: Step 3: load servers on lpss7...
+------------------------------------------------------
+[2] 22185
+[3] 22186
+[4] 22187
+[5] 22188
+[6] 22191
+------------------------------------------------------
+startwfc: Step 4: contact servers outside lpss7...
+------------------------------------------------------
+[7] 22216
+------------------------------------------------------
+startwfc: Step 5: load displays...
+------------------------------------------------------
+[8] 22221
+[9] 22229
+[10] 22237
+------------------------------------------------------
+startwfc: Step 6: check all tasks are on-line...
+------------------------------------------------------
+------------------------------------------------------
+startwfc: Step 7: initialize servers...
+------------------------------------------------------
+starting Autoguider
+setting prime station default
+
+
+
+Assertion failed: portFD_l != NOT_OPEN, file mcaSPort.c, line 561
+MCA:exit status:%DITS-F-SIGABRT, DITS Exited via exit handler with signal SIGABRT
+Abort
+
+
+
+
+
+^C
+[6]    Exit 134                      if ( 1 == 1 ) mcad
+SYS> AGSETUP:exit status:%DITS-F-SIGINT, DITS Exited via exit handler with signal SIGINT
+
+SYS> 
+SYS> 
+SYS> shutdownobssys
+[6] 22874
+Task 'INFODISP' not registered on this machine.
+[6]    Done                          ( online AUTO && autotv off )
+[8]    Terminated                    wfc_main_gui -display inticsdisplay:0.0 -geometry +0+250
+[10]   Terminated                    identify -display inticsdisplay:0.0
+[9]    Terminated                    obslog -s 60
+[1]    Terminated                    talker -display inticsdisplay:0.0 -geometry -0+0
+08/01/2013 09:59:54 controllerCmd Executing closedown on AGBPKT
+08/01/2013 09:59:54 controllerCmd AGBPKT has been shutdown
+08/01/2013 09:59:54 controllerCmd Executing closedown on IDSPKT
+08/01/2013 09:59:54 controllerCmd IDSPKT has been shutdown
+08/01/2013 09:59:54 controllerCmd Executing closedown on TCSPKT
+08/01/2013 09:59:54 controllerCmd Executing closedown on MCAPKT
+08/01/2013 09:59:54 controllerCmd Executing closedown on UDASHCT
+08/01/2013 09:59:54 controllerCmd Executing closedown on ParameterNoticeBoard
+08/01/2013 09:59:55 controllerCmd Executing closedown on OCSCorbaDRAMABridge
+08/01/2013 09:59:55 controllerCmd Executing closedown on OCSCorbaDRAMABridge
+[7]  - Done                          OCSCorbaDramaInterface -tcshost lpas2
+[4]  - Killed                        udas_hct INT WFC -ORBInitRef NameService=corbaname::localhost:35777
+[3]  - Killed                        udas_pkt_bridge MCAPKT MCA
+[2]  - Killed                        udas_pkt_bridge TCSPKT TCS@lpas2
+
+[5]  + Done                          ParameterNoticeBoard
+Pass 1
+Pass 2
+IMP_Master
+IMP_Receiver
+IMP_Transmitter
+IMP_Pulse_5690
+IMP_Pulse_5691
+IMP_Pulse_5692
+Pass 3
+Memory mapped scratch files are in /var/tmp/intobs/imp_scratch
+Looking for user noticeboard mapped file imp_161.72.6.9.458971904
+User noticeboard mapped file imp_161.72.6.9.458971904 does not exist
+Checking for User Noticeboard semaphore
+  User noticeboard semaphore not found.
+Checking for semaphores, message queues, processes etc
+
+
+  Found semaphore 22151   Deleted OK
+  Found semaphore 22154   Deleted OK
+  Found semaphore 22155   Deleted OK
+  Found semaphore 22160   Deleted OK
+  Found semaphore 22161   Deleted OK
+  Found semaphore 22162   Deleted OK
+Looking for scratch files in /var/tmp/intobs/imp_scratch
+  Found scratch file imp_161.72.6.9.22151   Deleted OK
+  Found scratch file imp_161.72.6.9.22154   Deleted OK
+  Found scratch file imp_161.72.6.9.22155   Deleted OK
+  Found scratch file imp_161.72.6.9.22160   Deleted OK
+  Found scratch file imp_161.72.6.9.22161   Deleted OK
+  Found scratch file imp_161.72.6.9.22162   Deleted OK
+Looking for Fifo files in /tmp
+Looking for Fifo files in /var/tmp/intobs/imp_scratch
+  Found Fifo file ff_161.72.6.9..TaqrR   Deleted OK
+Stopping remotly Sound Server on INT ICS Display
+Authentication successful.
+NOTICE: the CIA and ICS are now shut down.
+shutdownobssys done
+SYS> cleanup
+Memory mapped scratch files are in /var/tmp/intobs/imp_scratch
+Looking for user noticeboard mapped file imp_161.72.6.9.458971904
+User noticeboard mapped file imp_161.72.6.9.458971904 does not exist
+Checking for User Noticeboard semaphore
+  User noticeboard semaphore not found.
+Checking for semaphores, message queues, processes etc
+Looking for scratch files in /var/tmp/intobs/imp_scratch
+Looking for Fifo files in /tmp
+Looking for Fifo files in /var/tmp/intobs/imp_scratch
+SYS> obssys
+
+----------------------------
+Observing systems available:
+----------------------------
+ 8: IDS+REDPLUS2
+ 7: IDS+EEV10
+ 6: IDS+TEK5
+ 5: Shack-Hartmann Test
+ 4: WFC
+ 0: give up and exit
+Please choose a system > 4
+
+---------------------------------------------------------
+Telescope: INT  Instrument: WFC           
+Detector:  WFC  Observing station: SYS    
+OSCAR System: release                                     
+Give the command startobssys to start/restart the system.
+Use shutdownobssys to close it down after use.           
+---------------------------------------------------------
+
+SYS> startobssys
+inticsdisplay is alive
+inticsdisplay is alive
+161.72.6.108 is alive
+-----------------------------------------------------
+ startwfc.csh
+-----------------------------------------------------
+ 
+------------------------------------------------------
+startids: Step 0: execute shutdown first (stopwfc.csh)
+------------------------------------------------------
+------------------------------------------------------
+startwfc: Step 1: start the DRAMA message-net...
+------------------------------------------------------
+
+IMP Transmitter task starting on lpss7.
+Logging startup sequence from file /int/depot/release/43/bin/IMP_Startup.lpss7.
+Line 19: Log startup sequence
+Line 20: Use port 50002
+Line 21: Pulse connections to lpss14  every 60 seconds
+Line 22: Pulse connections to lpas2   every 30 seconds
+Line 23: Pulse connections to lpvme01 every 30 seconds
+IMP Transmitter: startup sequence complete on lpss7
+
+IMP Receiver task starting on lpss7.
+Logging startup sequence from file /int/depot/release/43/bin/IMP_Startup.lpss7.
+Line 19: Log startup sequence
+Line 20: Use port 50002
+Line 21: Pulse connections to lpss14  every 60 seconds
+Line 22: Pulse connections to lpas2   every 30 seconds
+Line 23: Pulse connections to lpvme01 every 30 seconds
+IMP Receiver: startup sequence complete on lpss7
+-----------------------------------------------------
+startwfc: Step 2: check for tasks already loaded...
+-----------------------------------------------------
+Starting remotly Sound Server on INT ICS Display
+Authentication successful.
+[1] 23054
+------------------------------------------------------
+startwfc: Step 3: load servers on lpss7...
+------------------------------------------------------
+[2] 23061
+[3] 23062
+[4] 23063
+[5] 23064
+[6] 23067
+------------------------------------------------------
+startwfc: Step 4: contact servers outside lpss7...
+------------------------------------------------------
+[7] 23093
+------------------------------------------------------
+startwfc: Step 5: load displays...
+------------------------------------------------------
+[8] 23098
+[9] 23106
+[10] 23114
+------------------------------------------------------
+startwfc: Step 6: check all tasks are on-line...
+------------------------------------------------------
+------------------------------------------------------
+startwfc: Step 7: initialize servers...
+------------------------------------------------------
+starting Autoguider
+setting prime station default
+AGSETUP:exit status:%AUTO-E-FAILED_SET_STATION_DEF, failed to setup the selected station defaults
+starting display on inticsdisplay:0.0
+done
+Initialising MCA
+ArgStructure         Struct
+  SIM_LEVEL            Int    0
+  COMMS_PORT           Char   [14] "/dev/cua/b006"
+  SW_KP                Ushort 500
+  SW_KI                Ushort 250
+  SW_KD                Ushort 3000
+  SW_IL                Ushort 5
+  FW_KP                Ushort 600
+  FW_KI                Ushort 250
+  FW_KD                Ushort 2000
+  FW_IL                Ushort 100
+  SW_OFFSET            Int    -160290
+  FW_OFFSET            Int    -4000
+cmd5c2c:exit status:%MCA-E-FWTIMEOUT, A filter-wheel movement timed out.
+Finished Initialising MCA
+selecting filter #1
+Setting INFODISP PREDICT ON
+cmd5c5e:exit status:%DITS-F-UNKNTASK, Task unknown to message system
+Starting the WFC-AG noise reduction sequencer
+[11] 23648
+startobssys done
+10:03:39 SYS> mca reset
+mca: Command not found.
+10:05:06 SYS> reset mca
+Type mca unknown
+10:05:12 SYS> shutdownobssys
+[12] 23833
+Task 'INFODISP' not registered on this machine.
+[12]   Done                          ( online AUTO && autotv off )
+[8]    Terminated                    wfc_main_gui -display inticsdisplay:0.0 -geometry +0+250
+[10]   Terminated                    identify -display inticsdisplay:0.0
+[9]    Terminated                    obslog -s 60
+[1]    Terminated                    talker -display inticsdisplay:0.0 -geometry -0+0
+08/01/2013 10:05:31 controllerCmd Executing closedown on AGBPKT
+08/01/2013 10:05:32 controllerCmd AGBPKT has been shutdown
+08/01/2013 10:05:32 controllerCmd Executing closedown on IDSPKT
+08/01/2013 10:05:32 controllerCmd IDSPKT has been shutdown
+08/01/2013 10:05:32 controllerCmd Executing closedown on TCSPKT
+08/01/2013 10:05:32 controllerCmd Executing closedown on MCAPKT
+08/01/2013 10:05:32 controllerCmd Executing closedown on UDASHCT
+08/01/2013 10:05:32 controllerCmd Executing closedown on ParameterNoticeBoard
+08/01/2013 10:05:32 controllerCmd Executing closedown on OCSCorbaDRAMABridge
+08/01/2013 10:05:32 controllerCmd Executing closedown on OCSCorbaDRAMABridge
+08/01/2013 10:05:32 controllerCmd OCSCorbaDRAMABridge has been shutdown
+[7]  - Done                          OCSCorbaDramaInterface -tcshost lpas2
+[4]    Killed                        udas_hct INT WFC -ORBInitRef NameService=corbaname::localhost:35777
+[3]    Killed                        udas_pkt_bridge MCAPKT MCA
+[2]    Killed                        udas_pkt_bridge TCSPKT TCS@lpas2
+[11] - Exit 1                        wfc_ag_sequencer
+[5]  - Done                          ParameterNoticeBoard
+Pass 1
+MCA
+MCA:exit status:%DITS-F-SIGTERM, DITS Exited via exit handler with signal SIGTERM
+AUTODISP-SYS
+Pass 2
+IMP_Master
+IMP_Transmitter
+IMP_Receiver
+IMP_Pulse_59f8
+IMP_Pulse_59f9
+IMP_Pulse_59fa
+Pass 3
+[6]  + Done                          if ( 1 == 1 ) mcad
+Memory mapped scratch files are in /var/tmp/intobs/imp_scratch
+Looking for user noticeboard mapped file imp_161.72.6.9.458971904
+User noticeboard mapped file imp_161.72.6.9.458971904 does not exist
+Checking for User Noticeboard semaphore
+  User noticeboard semaphore not found.
+Checking for semaphores, message queues, processes etc
+  Found semaphore 23025   Deleted OK
+  Found semaphore 23028   Deleted OK
+  Found semaphore 23029   Deleted OK
+  Found semaphore 23032   Deleted OK
+  Found semaphore 23033   Deleted OK
+  Found semaphore 23034   Deleted OK
+  Found semaphore 23103   Deleted OK
+  Found semaphore 23651   Deleted OK
+Looking for scratch files in /var/tmp/intobs/imp_scratch
+  Found scratch file imp_161.72.6.9.23025   Deleted OK
+  Found scratch file imp_161.72.6.9.23028   Deleted OK
+  Found scratch file imp_161.72.6.9.23029   Deleted OK
+  Found scratch file imp_161.72.6.9.23032   Deleted OK
+  Found scratch file imp_161.72.6.9.23033   Deleted OK
+  Found scratch file imp_161.72.6.9.23034   Deleted OK
+  Found scratch file imp_161.72.6.9.23103   Deleted OK
+  Found scratch file imp_161.72.6.9.23651   Deleted OK
+Looking for Fifo files in /tmp
+Looking for Fifo files in /var/tmp/intobs/imp_scratch
+  Found Fifo file ff_161.72.6.9.KqaG.S   Deleted OK
+Stopping remotly Sound Server on INT ICS Display
+Authentication successful.
+NOTICE: the CIA and ICS are now shut down.
+shutdownobssys done
+10:06:07 SYS> 
+10:06:08 SYS> 
+10:06:09 SYS> cleanup
+Memory mapped scratch files are in /var/tmp/intobs/imp_scratch
+Looking for user noticeboard mapped file imp_161.72.6.9.458971904
+User noticeboard mapped file imp_161.72.6.9.458971904 does not exist
+Checking for User Noticeboard semaphore
+  User noticeboard semaphore not found.
+Checking for semaphores, message queues, processes etc
+Looking for scratch files in /var/tmp/intobs/imp_scratch
+Looking for Fifo files in /tmp
+Looking for Fifo files in /var/tmp/intobs/imp_scratch
+10:06:19 SYS> obssys
+
+----------------------------
+Observing systems available:
+----------------------------
+ 8: IDS+REDPLUS2
+ 7: IDS+EEV10
+ 6: IDS+TEK5
+ 5: Shack-Hartmann Test
+ 4: WFC
+ 0: give up and exit
+Please choose a system > 4
+
+---------------------------------------------------------
+Telescope: INT  Instrument: WFC           
+Detector:  WFC  Observing station: SYS    
+OSCAR System: release                                     
+Give the command startobssys to start/restart the system.
+Use shutdownobssys to close it down after use.           
+---------------------------------------------------------
+
+SYS> startobssys
+inticsdisplay is alive
+inticsdisplay is alive
+161.72.6.108 is alive
+-----------------------------------------------------
+ startwfc.csh
+-----------------------------------------------------
+ 
+------------------------------------------------------
+startids: Step 0: execute shutdown first (stopwfc.csh)
+------------------------------------------------------
+------------------------------------------------------
+startwfc: Step 1: start the DRAMA message-net...
+------------------------------------------------------
+
+IMP Receiver task starting on lpss7.
+Logging startup sequence from file /int/depot/release/43/bin/IMP_Startup.lpss7.
+Line 19: Log startup sequence
+Line 20: Use port 50002
+Line 21: Pulse connections to lpss14  every 60 seconds
+Line 22: Pulse connections to lpas2   every 30 seconds
+Line 23: Pulse connections to lpvme01 every 30 seconds
+IMP Receiver: startup sequence complete on lpss7
+
+IMP Transmitter task starting on lpss7.
+Logging startup sequence from file /int/depot/release/43/bin/IMP_Startup.lpss7.
+Line 19: Log startup sequence
+Line 20: Use port 50002
+Line 21: Pulse connections to lpss14  every 60 seconds
+Line 22: Pulse connections to lpas2   every 30 seconds
+Line 23: Pulse connections to lpvme01 every 30 seconds
+IMP Transmitter: startup sequence complete on lpss7
+-----------------------------------------------------
+startwfc: Step 2: check for tasks already loaded...
+-----------------------------------------------------
+Starting remotly Sound Server on INT ICS Display
+Authentication successful.
+[1] 23958
+------------------------------------------------------
+startwfc: Step 3: load servers on lpss7...
+------------------------------------------------------
+[2] 23965
+[3] 23966
+[4] 23967
+[5] 23968
+[6] 23971
+------------------------------------------------------
+startwfc: Step 4: contact servers outside lpss7...
+------------------------------------------------------
+[7] 23995
+------------------------------------------------------
+startwfc: Step 5: load displays...
+------------------------------------------------------
+[8] 24000
+[9] 24008
+[10] 24016
+------------------------------------------------------
+startwfc: Step 6: check all tasks are on-line...
+------------------------------------------------------
+------------------------------------------------------
+startwfc: Step 7: initialize servers...
+------------------------------------------------------
+starting Autoguider
+setting prime station default
+starting display on inticsdisplay:0.0
+done
+Initialising MCA
+ArgStructure         Struct
+  SIM_LEVEL            Int    0
+  COMMS_PORT           Char   [14] "/dev/cua/b006"
+  SW_KP                Ushort 500
+  SW_KI                Ushort 250
+  SW_KD                Ushort 3000
+  SW_IL                Ushort 5
+  FW_KP                Ushort 600
+  FW_KI                Ushort 250
+  FW_KD                Ushort 2000
+  FW_IL                Ushort 100
+  SW_OFFSET            Int    -160290
+  FW_OFFSET            Int    -4000
+Finished Initialising MCA
+selecting filter #1
+Setting INFODISP PREDICT ON
+cmd5e31:exit status:%DITS-F-UNKNTASK, Task unknown to message system
+Starting the WFC-AG noise reduction sequencer
+[11] 24114
+startobssys done
+10:08:53 SYS> bias
+
+ ********************************************************************************
+ *** WARNING: Header collection failed                                        ***
+ *** WARNING: The packet collector TCSPKT has failed to collect a FITS header packet ***
+ *** WARNING: Your FITS files will have incomplete headers!                   ***
+ ********************************************************************************
+
+10:10:37 SYS> flat 5
+
+ ********************************************************************************
+ *** WARNING: Header collection failed                                        ***
+ *** WARNING: The packet collector TCSPKT has failed to collect a FITS header packet ***
+ *** WARNING: Your FITS files will have incomplete headers!                   ***
+ ********************************************************************************
+
+10:12:06 SYS> focus 43.5
+11:16:41 SYS> bias
+11:18:50 SYS> bias
+11:20:21 SYS> flash 0.5
+11:21:36 SYS> flat 6
+11:22:25 SYS> flat 6
+11:23:24 SYS> 
+13:43:34 SYS> shutdownobssys
+[12] 7103
+Task 'INFODISP' not registered on this machine.
+[12]   Done                          ( online AUTO && autotv off )
+[8]    Terminated                    wfc_main_gui -display inticsdisplay:0.0 -geometry +0+250
+[10]   Terminated                    identify -display inticsdisplay:0.0
+[9]    Terminated                    obslog -s 60
+[1]    Terminated                    talker -display inticsdisplay:0.0 -geometry -0+0
+08/01/2013 13:43:55 controllerCmd Executing closedown on AGBPKT
+08/01/2013 13:43:56 controllerCmd AGBPKT has been shutdown
+08/01/2013 13:43:56 controllerCmd Executing closedown on IDSPKT
+08/01/2013 13:43:56 controllerCmd IDSPKT has been shutdown
+08/01/2013 13:43:56 controllerCmd Executing closedown on TCSPKT
+08/01/2013 13:43:56 controllerCmd Executing closedown on MCAPKT
+08/01/2013 13:43:56 controllerCmd Executing closedown on UDASHCT
+08/01/2013 13:43:56 controllerCmd Executing closedown on ParameterNoticeBoard
+08/01/2013 13:43:56 controllerCmd Executing closedown on OCSCorbaDRAMABridge
+08/01/2013 13:43:56 controllerCmd Executing closedown on OCSCorbaDRAMABridge
+08/01/2013 13:43:56 controllerCmd OCSCorbaDRAMABridge has been shutdown
+[7]  - Done                          OCSCorbaDramaInterface -tcshost lpas2
+[4]    Killed                        udas_hct INT WFC -ORBInitRef NameService=corbaname::localhost:35777
+[3]    Killed                        udas_pkt_bridge MCAPKT MCA
+[2]    Killed                        udas_pkt_bridge TCSPKT TCS@lpas2
+[11] - Exit 1                        wfc_ag_sequencer
+[5]  - Done                          ParameterNoticeBoard
+Pass 1
+MCA
+MCA:exit status:%DITS-F-SIGTERM, DITS Exited via exit handler with signal SIGTERM
+AUTODISP-SYS
+Pass 2
+IMP_Master
+IMP_Transmitter
+IMP_Receiver
+IMP_Pulse_5d82
+IMP_Pulse_5d83
+IMP_Pulse_5d86
+Pass 3
+[6]  + Done                          if ( 1 == 1 ) mcad
+Memory mapped scratch files are in /var/tmp/intobs/imp_scratch
+Looking for user noticeboard mapped file imp_161.72.6.9.458971904
+User noticeboard mapped file imp_161.72.6.9.458971904 does not exist
+Checking for User Noticeboard semaphore
+  User noticeboard semaphore not found.
+Checking for semaphores, message queues, processes etc
+  Found semaphore 23931   Deleted OK
+  Found semaphore 23934   Deleted OK
+  Found semaphore 23935   Deleted OK
+  Found semaphore 23938   Deleted OK
+  Found semaphore 23939   Deleted OK
+  Found semaphore 23942   Deleted OK
+  Found semaphore 24004   Deleted OK
+  Found semaphore 24116   Deleted OK
+  Found semaphore 26488   Deleted OK
+Looking for scratch files in /var/tmp/intobs/imp_scratch
+  Found scratch file imp_161.72.6.9.23931   Deleted OK
+  Found scratch file imp_161.72.6.9.23934   Deleted OK
+  Found scratch file imp_161.72.6.9.23935   Deleted OK
+  Found scratch file imp_161.72.6.9.23938   Deleted OK
+  Found scratch file imp_161.72.6.9.23939   Deleted OK
+  Found scratch file imp_161.72.6.9.23942   Deleted OK
+  Found scratch file imp_161.72.6.9.24004   Deleted OK
+  Found scratch file imp_161.72.6.9.24116   Deleted OK
+  Found scratch file imp_161.72.6.9.26488   Deleted OK
+Looking for Fifo files in /tmp
+Looking for Fifo files in /var/tmp/intobs/imp_scratch
+  Found Fifo file ff_161.72.6.9.qTaWVU   Deleted OK
+Stopping remotly Sound Server on INT ICS Display
+Authentication successful.
+NOTICE: the CIA and ICS are now shut down.
+shutdownobssys done
+13:44:32 SYS> obssys
+
+----------------------------
+Observing systems available:
+----------------------------
+ 8: IDS+REDPLUS2
+ 7: IDS+EEV10
+ 6: IDS+TEK5
+ 5: Shack-Hartmann Test
+ 4: WFC
+ 0: give up and exit
+Please choose a system > 4
+
+---------------------------------------------------------
+Telescope: INT  Instrument: WFC           
+Detector:  WFC  Observing station: SYS    
+OSCAR System: release                                     
+Give the command startobssys to start/restart the system.
+Use shutdownobssys to close it down after use.           
+---------------------------------------------------------
+
+SYS> startobssys
+inticsdisplay is alive
+inticsdisplay is alive
+161.72.6.108 is alive
+-----------------------------------------------------
+ startwfc.csh
+-----------------------------------------------------
+ 
+------------------------------------------------------
+startids: Step 0: execute shutdown first (stopwfc.csh)
+------------------------------------------------------
+------------------------------------------------------
+startwfc: Step 1: start the DRAMA message-net...
+------------------------------------------------------
+
+IMP Transmitter task starting on lpss7.
+Logging startup sequence from file /int/depot/release/43/bin/IMP_Startup.lpss7.
+Line 19: Log startup sequence
+Line 20: Use port 50002
+Line 21: Pulse connections to lpss14  every 60 seconds
+Line 22: Pulse connections to lpas2   every 30 seconds
+Line 23: Pulse connections to lpvme01 every 30 seconds
+IMP Transmitter: startup sequence complete on lpss7
+
+IMP Receiver task starting on lpss7.
+Logging startup sequence from file /int/depot/release/43/bin/IMP_Startup.lpss7.
+Line 19: Log startup sequence
+Line 20: Use port 50002
+Line 21: Pulse connections to lpss14  every 60 seconds
+Line 22: Pulse connections to lpas2   every 30 seconds
+Line 23: Pulse connections to lpvme01 every 30 seconds
+IMP Receiver: startup sequence complete on lpss7
+-----------------------------------------------------
+startwfc: Step 2: check for tasks already loaded...
+-----------------------------------------------------
+Starting remotly Sound Server on INT ICS Display
+Authentication successful.
+[1] 7579
+------------------------------------------------------
+startwfc: Step 3: load servers on lpss7...
+------------------------------------------------------
+[2] 7591
+[3] 7592
+[4] 7594
+[5] 7595
+[6] 7605
+------------------------------------------------------
+startwfc: Step 4: contact servers outside lpss7...
+------------------------------------------------------
+[7] 7619
+------------------------------------------------------
+startwfc: Step 5: load displays...
+------------------------------------------------------
+[8] 7625
+[9] 7633
+[10] 7647
+------------------------------------------------------
+startwfc: Step 6: check all tasks are on-line...
+------------------------------------------------------
+------------------------------------------------------
+startwfc: Step 7: initialize servers...
+------------------------------------------------------
+starting Autoguider
+setting prime station default
+starting display on inticsdisplay:0.0
+done
+Initialising MCA
+ArgStructure         Struct
+  SIM_LEVEL            Int    0
+  COMMS_PORT           Char   [14] "/dev/cua/b006"
+  SW_KP                Ushort 500
+  SW_KI                Ushort 250
+  SW_KD                Ushort 3000
+  SW_IL                Ushort 5
+  FW_KP                Ushort 600
+  FW_KI                Ushort 250
+  FW_KD                Ushort 2000
+  FW_IL                Ushort 100
+  SW_OFFSET            Int    -160290
+  FW_OFFSET            Int    -4000
+Finished Initialising MCA
+selecting filter #1
+Setting INFODISP PREDICT ON
+Starting the WFC-AG noise reduction sequencer
+[11] 7721
+startobssys done
+13:51:55 SYS> bias
+13:55:29 SYS> focus 43.94
+13:56:38 SYS> focus 43.9
+13:56:47 SYS> focus 43.94
+13:56:56 SYS> flat 06
+13:57:55 SYS> change i
+wfcchange5f53:MCA:We're ready to change filter #1.
+wfcchange5f53:MCA:You may use the filter door.
+wfcchange5f53:MCA:The system will now identify the filter.
+wfcchange5f53:MCA:Please do not open the door again.
+17:10:41 SYS> change KPB
+wfcchange5fd6:MCA:We're ready to change filter #5.
+wfcchange5fd6:MCA:You may use the filter door.
+wfcchange5fd6:MCA:The system will now identify the filter.
+wfcchange5fd6:MCA:Please do not open the door again.
+17:12:44 SYS> filter CLR
+17:15:59 SYS> filter R
+17:19:17 SYS> glance 14
+17:23:47 SYS> glance 10
+17:25:20 SYS> glance 8
+17:26:37 SYS> ccdqcon_acq.py WFC 8
+images are in folder /obsdata/inta/20130801/
+taking 2 biases
+filename bias1 r1002547.fit
+filename bias2 r1002548.fit
+taking 2 flats
+filename flat1 r1002549.fit
+filename flat2 r1002550.fit
+17:31:04 SYS> glance 30
+17:33:34 SYS> glance 25
+17:35:24 SYS> glance 22
+17:36:33 SYS> glance 20
+17:37:55 SYS> ccdqcon_acq.py WFC 20
+images are in folder /obsdata/inta/20130801/
+taking 2 biases
+filename bias1 r1002551.fit
+filename bias2 r1002552.fit
+taking 2 flats
+filename flat1 r1002553.fit
+filename flat2 r1002554.fit
+17:42:26 SYS> bias
+17:44:12 SYS> glance
+
+Usage:
+       arc [<camera>] <time> ["<title>"]
+       multarc [<camera>] <n-obs> <time> ["<title>"]
+       bias [<camera>] ["<title>"]
+       multbias [<camera>] <n-obs> ["<title>"]
+       dark [<camera>] <time> ["<title>"]
+       multdark [<camera>] <n-obs> <time> ["<title>"]
+       flash [<camera>] <time> ["<title>"]
+       multflash [<camera>] <n-obs> <time> ["<title>"]
+       flat [<camera>] <exposuretime> ["<title>"]
+       multflat [<camera>] <n-obs> <exposure-time> ["<title>"]
+       glance [<camera>] <exposure-time>
+       multglance [<camera>] <n-obs> <exposure-time>
+       pupil [<camera>] <time> ["<title>"]
+       multpupil [<camera>] <n-obs> <time> ["<title>"]
+       run [<camera>] <exposure-time> ["<title>"]
+       multrun [<camera>] <n-obs> <exposure-time> ["<title>"]
+       scratch [<camera>] <n> <exposure-time> ["<title>"]
+       sky [<camera>] <exposure-time> ["<title>"]
+       multsky [<camera>] <n-obs> <exposure-time> ["<title>"]
+   or: 
+       udas_run camera instrument telescope obssys n-obs obs-type scratch-file exp-time|exp-time-file [title]
+
+21:05:15 SYS> glance 2
+21:05:51 SYS> filter Ha
+21:06:45 SYS> glance 2
+21:10:21 SYS> glance 2
+21:13:18 SYS> glance 2
+21:16:37 SYS> glance 2
+21:18:04 SYS> sky 2
+21:19:33 SYS> sky 3
+21:20:36 SYS> sky 5
+21:21:39 SYS> offset arc 10 10
+21:21:53 SYS> sky 7
+21:22:55 SYS> offset arc 10 -10
+21:23:02 SYS> sky 10
+21:24:05 SYS> offset arc -10 -10
+21:24:19 SYS> sky 15
+21:25:28 SYS> offset arc -10 10
+21:25:39 SYS> sky 21
+21:26:54 SYS> filter R
+21:27:04 SYS> glance 2
+21:28:08 SYS> sky 1.5
+21:29:20 SYS> offset arc 20 20
+21:29:36 SYS> sky 4
+21:30:42 SYS> offset arc 20 -20
+21:30:52 SYS> sky 6
+21:31:51 SYS> offset arc -20 -20
+21:32:00 SYS> sky 8
+21:33:09 SYS> offset arc -20 20
+21:33:21 SYS> sky 12
+21:34:29 SYS> offset arc 10 10
+21:34:38 SYS> sky 16
+21:35:48 SYS> offset arc -10 -10
+21:35:58 SYS> sky 22
+21:37:23 SYS> filter CLR
+21:37:39 SYS> sky 15
+21:38:48 SYS> sky 5
+21:40:07 SYS> offset arc -10 -10
+21:40:32 SYS> offset arc -10 10
+21:40:39 SYS> sky 8
+21:41:42 SYS> offset arc 10 10
+21:41:56 SYS> sky 12
+21:43:04 SYS> offset arc 10 -10
+21:43:13 SYS> sky 17
+21:44:30 SYS> offset arc 20 20
+21:44:41 SYS> sky 25
+21:46:02 SYS> multbias 5
+21:50:09 SYS> focus 43.34
+21:56:31 SYS> run 5 " test 1"
+21:57:33 SYS> window 1 '[650:1050,2295:4150]'
+Saving WFC configuration to file /home/intobs/CCD_Configs/udas_WFC.cfg
+Saved  WFC configuration to file /home/intobs/CCD_Configs/udas_WFC.cfg
+22:01:16 SYS> run 5 " test 2"
+22:01:51 SYS> glance 5
+22:12:01 SYS> window 1 disable
+Saving WFC configuration to file /home/intobs/CCD_Configs/udas_WFC.cfg
+Saved  WFC configuration to file /home/intobs/CCD_Configs/udas_WFC.cfg
+22:12:53 SYS> glance 5
+22:13:32 SYS> cd /home/intobs/jmcc
+22:14:57 SYS> cd /obsdata/inta
+22:16:01 SYS> /int/ObservingSystemSupportPackages/python-3.2.2/bin/python3.2/~jmcc/do
+/int/ObservingSystemSupportPackages/python-3.2.2/bin/python3.2/~jmcc/ not a directory
+
+22:16:01 SYS> /int/ObservingSystemSupportPackages/python-3.2.2/bin/python3.2/~jmcc/do_o
+/int/ObservingSystemSupportPackages/python-3.2.2/bin/python3.2/~jmcc/ not a directory
+
+22:16:01 SYS> /int/ObservingSystemSupportPackages/python-3.2.2/bin/python3.2~/jmcc/do_obs.py 5 20130801
+/int/ObservingSystemSupportPackages/python-3.2.2/bin/python3.2~/jmcc/do_obs.py: Command not found.
+22:19:08 SYS> /int/ObservingSystemSupportPackages/python-3.2.2/bin/python3.2 ~/jmcc/do_obs.py 5 20130801
+  File "/home/intobs/jmcc/do_obs.py", line 73
+    print "exiting"
+                  ^
+SyntaxError: invalid syntax
+22:20:09 SYS> /int/ObservingSystemSupportPackages/python-3.2.2/bin/python3.2 ~/jmcc/do_obs.py 5 20130801
+  File "/home/intobs/jmcc/do_obs.py", line 166
+    print("Starting recentering on file"+filelist[np.shape(filelist))[0]-1]+"..."
+                                                                    ^
+SyntaxError: invalid syntax
+22:22:16 SYS> /int/ObservingSystemSupportPackages/python-3.2.2/bin/python3.2 ~/jmcc/do_obs.py 5 20130801
+  File "/home/intobs/jmcc/do_obs.py", line 166
+    print("Starting recentering on file"+filelist[np.shape(filelist))[0]-1]+"..")
+                                                                    ^
+SyntaxError: invalid syntax
+22:23:18 SYS> /int/ObservingSystemSupportPackages/python-3.2.2/bin/python3.2 ~/jmcc/do_obs.py 5 20130801
+Modules loaded...
+using an exposure time of   5.0 seconds
+using directory 20130801
+Press q to abort the observations.
+Traceback (most recent call last):
+  File "/int/ObservingSystemSupportPackages/python-3.2.2/lib/python3.2/urllib/request.py", line 1766, in open_local_file
+    stats = os.stat(localname)
+OSError: [Errno 2] No such file or directory: '20130801r1002583.fit'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/intobs/jmcc/do_obs.py", line 212, in <module>
+    do_obs(texp,indir)
+  File "/home/intobs/jmcc/do_obs.py", line 138, in do_obs
+    hdu=pf.open(indir+filelist[np.shape(filelist)[0]-1])
+  File "/int/ObservingSystemSupportPackages/python-3.2.2/lib/python3.2/site-packages/pyfits-3.0.6-py3.2-solaris-2.8-sun4u.egg/pyfits/util.py", line 206, in _with_extensions_wrapper
+    return func(*args, **kwargs)
+  File "/int/ObservingSystemSupportPackages/python-3.2.2/lib/python3.2/site-packages/pyfits-3.0.6-py3.2-solaris-2.8-sun4u.egg/pyfits/hdu/hdulist.py", line 103, in fitsopen
+    return HDUList.fromfile(name, mode, memmap, **kwargs)
+  File "/int/ObservingSystemSupportPackages/python-3.2.2/lib/python3.2/site-packages/pyfits-3.0.6-py3.2-solaris-2.8-sun4u.egg/pyfits/hdu/hdulist.py", line 231, in fromfile
+    ffo = _File(fileobj, mode=mode, memmap=memmap)
+  File "/int/ObservingSystemSupportPackages/python-3.2.2/lib/python3.2/site-packages/pyfits-3.0.6-py3.2-solaris-2.8-sun4u.egg/pyfits/util.py", line 34, in __call__
+    self.__init__(*args, **kwargs)
+  File "/int/ObservingSystemSupportPackages/python-3.2.2/lib/python3.2/site-packages/pyfits-3.0.6-py3.2-solaris-2.8-sun4u.egg/pyfits/file.py", line 75, in __init__
+    self.name, _ = urllib.request.urlretrieve(fileobj)
+  File "/int/ObservingSystemSupportPackages/python-3.2.2/lib/python3.2/urllib/request.py", line 150, in urlretrieve
+    return _urlopener.retrieve(url, filename, reporthook, data)
+  File "/int/ObservingSystemSupportPackages/python-3.2.2/lib/python3.2/urllib/request.py", line 1564, in retrieve
+    fp = self.open_local_file(url1)
+  File "/int/ObservingSystemSupportPackages/python-3.2.2/lib/python3.2/urllib/request.py", line 1768, in open_local_file
+    raise URLError(e.errno, e.strerror, e.filename)
+TypeError: __init__() takes at most 3 positional arguments (4 given)
+22:25:59 SYS> 
+22:28:08 SYS> /int/ObservingSystemSupportPackages/python-3.2.2/bin/python3.2 ~/jmcc/do_obs.py 5 20130801/
+Modules loaded...
+using an exposure time of   5.0 seconds
+using directory 20130801/
+Press q to abort the observations.
+Finding center of brightest star..
+Found bright star at location ( 683.6,2320.0)
+Traceback (most recent call last):
+  File "/home/intobs/jmcc/do_obs.py", line 212, in <module>
+    do_obs(texp,indir)
+  File "/home/intobs/jmcc/do_obs.py", line 166, in do_obs
+    print("Starting recentering on file"+filelist[np.shape(filelist[0])-1]+"..")
+TypeError: unsupported operand type(s) for -: 'tuple' and 'int'
+22:31:43 SYS> /int/ObservingSystemSupportPackages/python-3.2.2/bin/python3.2 ~/jmcc/do_obs.py 5 20130801/
+Modules loaded...
+using an exposure time of   5.0 seconds
+using directory 20130801/
+Press q to abort the observations.
+Finding center of brightest star..
+Found bright star at location ( 683.7,2320.3)
+Starting recentering on file r1002587.fit..
+Star now at  location ( 683.7,2320.3)
+Applying an offset of (   0.00,   0.00) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002588.fit..
+Star now at  location ( 683.7,2320.3)
+Applying an offset of (   0.00,   0.00) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002589.fit..
+Star now at  location ( 683.7,2320.3)
+Applying an offset of (   0.00,   0.00) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002589.fit..
+Star now at  location ( 683.7,2320.3)
+Applying an offset of (   0.00,   0.00) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002591.fit..
+Star now at  location ( 683.7,2320.3)
+Applying an offset of (   0.00,   0.00) arcsec (n.b. offset is cumulative)
+starting on exposure    5
+Starting recentering on file r1002592.fit..
+Star now at  location ( 683.7,2320.3)
+Applying an offset of (   0.00,   0.00) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002593.fit..
+Star now at  location ( 683.7,2320.3)
+Applying an offset of (   0.00,   0.00) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002594.fit..
+Star now at  location ( 683.7,2320.3)
+Applying an offset of (   0.00,   0.00) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002595.fit..
+Star now at  location ( 683.7,2320.3)
+Applying an offset of (   0.00,   0.00) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002596.fit..
+Star now at  location ( 683.7,2320.3)
+Applying an offset of (   0.00,   0.00) arcsec (n.b. offset is cumulative)
+starting on exposure   10
+Starting recentering on file r1002597.fit..
+Star now at  location ( 683.7,2320.3)
+Applying an offset of (   0.00,   0.00) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002598.fit..
+Star now at  location ( 683.7,2320.3)
+Applying an offset of (   0.00,   0.00) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002599.fit..
+Star now at  location ( 683.7,2320.3)
+Applying an offset of (   0.00,   0.00) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002600.fit..
+Star now at  location ( 683.7,2320.3)
+Applying an offset of (   0.00,   0.00) arcsec (n.b. offset is cumulative)
+^C   Ctrl+C caught, shutting down...
+22:52:56 SYS> bias 
+22:53:45 SYS> /int/ObservingSystemSupportPackages/python-3.2.2/bin/python3.2 ~/jmcc/do_obs.py 5 20130801/
+Modules loaded...
+using an exposure time of   5.0 seconds
+using directory 20130801/
+Press q to abort the observations.
+Finding center of brightest star..
+Found bright star at location ( 681.5,2301.8)
+Starting recentering on file r1002604.fit..
+Star now at  location ( 682.7,2300.0)
+Applying an offset of (   0.60,  -0.40) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002605.fit..
+Star now at  location ( 680.5,2300.3)
+Applying an offset of (   1.12,  -0.06) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002606.fit..
+Star now at  location ( 681.9,2301.9)
+Applying an offset of (   1.12,  -0.18) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002607.fit..
+Star now at  location ( 681.5,2301.1)
+Applying an offset of (   1.38,  -0.20) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002608.fit..
+Star now at  location ( 681.1,2300.6)
+Applying an offset of (   1.78,  -0.06) arcsec (n.b. offset is cumulative)
+starting on exposure    5
+Starting recentering on file r1002609.fit..
+Star now at  location ( 682.4,2297.3)
+Applying an offset of (   3.29,  -0.37) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002610.fit..
+Star now at  location ( 681.0,2300.9)
+Applying an offset of (   3.60,  -0.20) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002611.fit..
+Star now at  location ( 682.0,2301.9)
+Applying an offset of (   3.59,  -0.38) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002612.fit..
+Star now at  location ( 674.3,2301.2)
+Applying an offset of (   3.80,   2.01) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002613.fit..
+Star now at  location ( 681.6,2301.5)
+Applying an offset of (   3.92,   1.98) arcsec (n.b. offset is cumulative)
+starting on exposure   10
+Starting recentering on file r1002614.fit..
+^C   Ctrl+C caught, shutting down...
+23:05:23 SYS> bias 
+23:05:59 SYS> window 1 '[500:900,2100:2500]'
+Saving WFC configuration to file /home/intobs/CCD_Configs/udas_WFC.cfg
+Saved  WFC configuration to file /home/intobs/CCD_Configs/udas_WFC.cfg
+23:06:46 SYS> /int/ObservingSystemSupportPackages/python-3.2.2/bin/python3.2 ~/jmcc/do_obs.py 5 20130801/
+Modules loaded...
+using an exposure time of   5.0 seconds
+using directory 20130801/
+Press q to abort the observations.
+Finding center of brightest star..
+Found bright star at location ( 129.6, 201.1)
+Starting recentering on file r1002617.fit..
+Star now at  location ( 130.9, 200.4)
+Applying an offset of (  -0.44,  -0.24) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002618.fit..
+Star now at  location ( 122.5, 188.0)
+Applying an offset of (   1.89,  -4.58) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002619.fit..
+Star now at  location ( 110.6, 195.1)
+Applying an offset of (   8.20,  -6.56) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002620.fit..
+Star now at  location ( 104.1, 214.1)
+Applying an offset of (  16.67,  -2.20) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002621.fit..
+Star now at  location ( 118.1, 235.2)
+Applying an offset of (  20.49,   9.15) arcsec (n.b. offset is cumulative)
+starting on exposure    5
+Starting recentering on file r1002622.fit..
+Star now at  location ( 152.8, 239.1)
+Applying an offset of (  12.74,  21.81) arcsec (n.b. offset is cumulative)
+^CStarting recentering on file r1002622.fit..
+Star now at  location ( 152.8, 239.1)
+Applying an offset of (   4.99,  34.46) arcsec (n.b. offset is cumulative)
+
+Starting recentering on file r1002624.fit..
+Star now at  location ( 129.6, 201.1)
+Applying an offset of (   4.99,  34.46) arcsec (n.b. offset is cumulative)
+^C
+Starting recentering on file r1002624.fit..
+Star now at  location ( 129.6, 201.1)
+Applying an offset of (   4.99,  34.46) arcsec (n.b. offset is cumulative)
+^C
+Starting recentering on file r1002624.fit..
+Star now at  location ( 129.6, 201.1)
+Applying an offset of (   4.99,  34.46) arcsec (n.b. offset is cumulative)
+starting on exposure   10
+Traceback (most recent call last):
+  File "/home/intobs/jmcc/do_obs.py", line 215, in <module>
+    do_obs(texp,indir)
+  File "/home/intobs/jmcc/do_obs.py", line 159, in do_obs
+    if check_if_need_to_quit():
+  File "/home/intobs/jmcc/do_obs.py", line 68, in check_if_need_to_quit
+    if char[0] == 'q':
+IndexError: string index out of range
+23:10:54 SYS> bias
+23:11:10 SYS> offset arc 0 0
+23:11:24 SYS> /int/ObservingSystemSupportPackages/python-3.2.2/bin/python3.2 ~/jmcc/do_obs.py 5 20130801/
+Modules loaded...
+using an exposure time of   5.0 seconds
+using directory 20130801/
+Press q to abort the observations.
+Finding center of brightest star..
+Found bright star at location ( 123.0, 186.9)
+Starting recentering on file r1002629.fit..
+Star now at  location ( 124.0, 188.1)
+Applying an offset of (  -0.36,   0.42) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002630.fit..
+Star now at  location ( 125.4, 186.5)
+Applying an offset of (  -1.18,   0.31) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002631.fit..
+Star now at  location ( 124.6, 184.6)
+Applying an offset of (  -1.74,  -0.45) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002632.fit..
+Star now at  location ( 122.7, 182.7)
+Applying an offset of (  -1.64,  -1.84) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002633.fit..
+Star now at  location ( 117.7, 182.8)
+Applying an offset of (   0.11,  -3.18) arcsec (n.b. offset is cumulative)
+starting on exposure    5
+Starting recentering on file r1002634.fit..
+Star now at  location ( 113.9, 188.4)
+Applying an offset of (   3.11,  -2.67) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002635.fit..
+Star now at  location ( 115.6, 197.3)
+Applying an offset of (   5.56,   0.81) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002636.fit..
+Star now at  location ( 126.4, 203.9)
+Applying an offset of (   4.39,   6.49) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002637.fit..
+Star now at  location ( 144.7, 200.1)
+Applying an offset of (  -2.85,  10.91) arcsec (n.b. offset is cumulative)
+^CStarting recentering on file r1002637.fit..
+Star now at  location ( 144.7, 200.1)
+Applying an offset of ( -10.09,  15.33) arcsec (n.b. offset is cumulative)
+starting on exposure   10
+Starting recentering on file r1002639.fit..
+Star now at  location ( 161.4, 155.0)
+Applying an offset of ( -22.87,   4.71) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002640.fit..
+Star now at  location ( 123.0, 186.9)
+Applying an offset of ( -22.87,   4.71) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002641.fit..
+Star now at  location ( 123.0, 186.9)
+Applying an offset of ( -22.87,   4.71) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002642.fit..
+Star now at  location ( 123.0, 186.9)
+Applying an offset of ( -22.87,   4.71) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002643.fit..
+Star now at  location ( 123.0, 186.9)
+Applying an offset of ( -22.87,   4.71) arcsec (n.b. offset is cumulative)
+starting on exposure   15
+Starting recentering on file r1002644.fit..
+Star now at  location ( 123.0, 186.9)
+Applying an offset of ( -22.87,   4.71) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002645.fit..
+Star now at  location ( 123.0, 186.9)
+Applying an offset of ( -22.87,   4.71) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002646.fit..
+Star now at  location ( 123.0, 186.9)
+Applying an offset of ( -22.87,   4.71) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002647.fit..
+Star now at  location ( 123.0, 186.9)
+Applying an offset of ( -22.87,   4.71) arcsec (n.b. offset is cumulative)
+^CStarting recentering on file r1002647.fit..
+Star now at  location ( 123.0, 186.9)
+Applying an offset of ( -22.87,   4.71) arcsec (n.b. offset is cumulative)
+starting on exposure   20
+Starting recentering on file r1002649.fit..
+Star now at  location ( 123.0, 186.9)
+Applying an offset of ( -22.87,   4.71) arcsec (n.b. offset is cumulative)
+^CStarting recentering on file r1002649.fit..
+Star now at  location ( 123.0, 186.9)
+Applying an offset of ( -22.87,   4.71) arcsec (n.b. offset is cumulative)
+^CStarting recentering on file r1002649.fit..
+Star now at  location ( 123.0, 186.9)
+Applying an offset of ( -22.87,   4.71) arcsec (n.b. offset is cumulative)
+^COFFSET5bc7:exit status:%DITS-F-SIGINT, DITS Exited via exit handler with signal SIGINT
+Starting recentering on file r1002651.fit..
+Star now at  location ( 123.0, 186.9)
+Applying an offset of ( -22.87,   4.71) arcsec (n.b. offset is cumulative)
+q
+Traceback (most recent call last):
+  File "/home/intobs/jmcc/do_obs.py", line 215, in <module>
+    do_obs(texp,indir)
+  File "/home/intobs/jmcc/do_obs.py", line 159, in do_obs
+    if check_if_need_to_quit():
+  File "/home/intobs/jmcc/do_obs.py", line 69, in check_if_need_to_quit
+    q=string.lower(raw_input('Are you sure you want to quit (Yes/No)? '))
+AttributeError: 'module' object has no attribute 'lower'
+23:19:57 SYS> bias
+offset arc 0 023:20:15 SYS> offset arc 0 0
+23:20:23 SYS> glance 1
+23:20:43 SYS> window 1 '[500:900,2100:4000]'
+Saving WFC configuration to file /home/intobs/CCD_Configs/udas_WFC.cfg
+Saved  WFC configuration to file /home/intobs/CCD_Configs/udas_WFC.cfg
+23:21:41 SYS> glance 2
+23:21:58 SYS> offset arc 0 0
+23:24:59 SYS> /int/ObservingSystemSupportPackages/python-3.2.2/bin/python3.2 ~/jmcc/do_obs.py 5 20130801/
+Modules loaded...
+using an exposure time of   5.0 seconds
+using directory 20130801/
+Press q to abort the observations.
+Finding center of brightest star..
+Found bright star at location ( 124.1, 183.7)
+Starting recentering on file r1002655.fit..
+Star now at  location ( 123.8, 183.6)
+Applying an offset of (   0.05,   0.12) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002656.fit..
+Star now at  location ( 124.8, 183.6)
+Applying an offset of (   0.09,  -0.11) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002657.fit..
+Star now at  location ( 123.0, 183.2)
+Applying an offset of (   0.27,   0.26) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002658.fit..
+Star now at  location ( 124.7, 183.5)
+Applying an offset of (   0.34,   0.06) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002659.fit..
+Star now at  location ( 123.4, 180.2)
+Applying an offset of (   1.52,   0.31) arcsec (n.b. offset is cumulative)
+starting on exposure    5
+Starting recentering on file r1002660.fit..
+Star now at  location ( 125.5, 182.3)
+Applying an offset of (   1.99,  -0.14) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002661.fit..
+Star now at  location ( 123.2, 183.2)
+Applying an offset of (   2.15,   0.18) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002662.fit..
+Star now at  location ( 125.1, 183.8)
+Applying an offset of (   2.10,  -0.13) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002663.fit..
+Star now at  location ( 116.2, 181.9)
+Applying an offset of (   2.69,   2.50) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002664.fit..
+Star now at  location ( 122.4, 185.1)
+Applying an offset of (   2.22,   3.09) arcsec (n.b. offset is cumulative)
+starting on exposure   10
+Starting recentering on file r1002665.fit..
+Star now at  location ( 124.0, 183.2)
+Applying an offset of (   2.39,   3.14) arcsec (n.b. offset is cumulative)
+Starting recentering on file r1002666.fit..
+Star now at  location ( 124.8, 184.1)
+Applying an offset of (   2.27,   2.93) arcsec (n.b. offset is cumulative)
+q
+Traceback (most recent call last):
+  File "/home/intobs/jmcc/do_obs.py", line 215, in <module>
+    do_obs(texp,indir)
+  File "/home/intobs/jmcc/do_obs.py", line 159, in do_obs
+    if check_if_need_to_quit():
+  File "/home/intobs/jmcc/do_obs.py", line 69, in check_if_need_to_quit
+    q=string.lower(raw_input('Are you sure you want to quit (Yes/No)? '))
+AttributeError: 'module' object has no attribute 'lower'
+23:31:14 SYS> 

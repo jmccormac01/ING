@@ -1,0 +1,73 @@
+Multdither and mcol script testing 20131127:
+
+
+multdither: running from ~/jma as OBSSYS verisons are old versions
+
+./multdither acam 2 5 5 auto_off "mtest R"           --- good
+./multdither acam 2 5 5 auto_on "mtest R"            --- good
+./multdither acam 2 5 5 auto_ "mtest R"              --- good, found ag value error
+./multdither acam 2 5.2 5.2 auto_off "mtest R"       --- good, handles decimal times and step size
+./multdither acam Z Y X auto_off "mtest R"           --- good, found errors with number, exptime and step size
+./multdither acam 2 5 5 auto_on "mtest R" debug      --- good, no system calls
+./multdither acam 2 5 5 auto_on "mtest R" debug test --- good, ran jmcc test version with no system calls
+./multdither acam 2 5 5 auto_on "mtest R" test       --- good, ran jmcc test version WITH calls. No errors
+
+mcol: running from ~/jma as OBSSYS verisons are old versions
+
+./mcol acam "mtest" on 5 "SlnI,3,5,auto_on" "SlnZ,3,5,auto_off" --- good
+./mcol acam "mtest" off "SlnI,3,5,auto_on" "SlnZ,3,5,auto_off"  --- good
+./mcol acam "mtest" off "SlnI,3,5,auto_" "SlnZ,3,5,auto_"       --- good, found errors in ag arguments
+./mcol acam "mtest" off "SlnI,X,Y,auto_on" "SlnZ,X,Y,auto_off"  --- good, found errors in num and exptime
+./mcol "mtest" off "SlnI,X,Y,auto_on" "SlnZ,X,Y,auto_off"       --- good, found error in instrument name
+./mcol acam "test" off "SlnI,X,Y,auto_on" "SlnZ,X,Y,auto_off"   --- good, found error in object name
+./mcol acam "mtest" X "SlnI,X,Y,auto_on" "SlnZ,X,Y,auto_off"    --- good, found error in dither request
+
+
+Multdither and mcol script testing 20131129:
+
+multdither: running from OBSSYS 
+
+multdither acam 3 10 5 auto_on "stand B"             --- good
+multdither acam 3 10 5 auto_off "stand B"            --- good
+multdither acam 3 10 5 auto_ "stand B"               --- good, found ag value error
+multdither acam 3 10.2 5.2 auto_off "stand B"        --- good, handles decimal times and steps ok
+multdither acam 3.5 Y X auto_off "stand B"           --- good, found errors with num, exp and step size
+multdither acam 3 10 5 auto_off "stand B" debug      --- good, no system calls
+multdither acam 3 10 5 auto_off "stand B" debug test --- good, ran jmcc test version, no system calls
+multdither acam 3 10 5 auto_off "stand B" test       --- good, ran jmcc test version, no errors
+
+mcol: running from OBSSYS
+
+mcol acam  "stand" off "SlnI,2,10,auto_off" "SlnG,2,10,auto_on"            --- good
+mcol acam  "stand" on 5 "SlnI,2,10,auto_off" "SlnG,2,10,auto_on"           --- good, small bug see 1) below
+mcol acam  "stand" off "SlnI,2.2,Y,auto_" "SlnG,2.2,Y,auto_"               --- good, found errors
+mcol acam  "stand" off "SlnI,2,10.2,auto_off" "SlnG,2,10.2,auto_on"        --- good, decimal times fine
+mcol "stand" off "SlnI,2,10.2,auto_off" "SlnG,2,10.2,auto_on"              --- good, found instrument name error 
+mcol acam "stand" X "SlnI,2,10.2,auto_off" "SlnG,2,10.2,auto_on"           --- good, found error in dither request
+mcol acam  "stand" off "SlnI,2,10,auto_off" "SlnG,2,10,auto_on" debug      --- good, no system calls
+mcol acam  "stand" off "SlnI,2,10,auto_off" "SlnG,2,10,auto_on" debug test --- good, ran jmcc ver, no system calls
+mcol acam  "stand" off "SlnI,2,10,auto_off" "SlnG,2,10,auto_on" test       --- small bug, see 2) below
+
+
+Bugs:
+1) In v2.0 of multdither I added a "Press Enter" after displaying the abort procedure. 
+This "Press Enter" then stops mcol every time it calls multdither. Remove it!
+2) When running mcol with "test" is does not pass the 2nd OB to my script, check with JMA.
+
+Improvements for next version:
+multdither:
+- run "autoguide off" as subprocess to surpress the crap it outputs on command line
+- create a log of all outputs and errors
+
+mcol:
+- don't give the filter names in the "name", the script does this already
+- check the focus is not moving after filter change before running an image
+- run "acamimage X" as a subprocess to surpress the crap is outputs on the command line
+- create a log of all outputs and errors
+
+
+autoflat: running from ~/acam/jmcc/under_development/autoflat/
+
+python autoflat.py acam 3 slow SlnG SlnI   --- good
+
+

@@ -1,0 +1,3 @@
+DEBUG:root:This message should go to the logfile
+INFO:root:so should this
+WARNING:root:and this, too

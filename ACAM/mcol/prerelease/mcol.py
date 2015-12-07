@@ -1,6 +1,6 @@
 #########################################################
 #                                                       #
-#                  mcol.py ACAM v2.1                    #
+#                  mcol.py ACAM v2.0                    #
 #                                                       #
 #        An observing block script to do coloured       #
 #        observations, with or without guiding &        #
@@ -18,9 +18,7 @@
 #                     Added TEST and DEBUG like multdither
 #                     Added more checks on the command line args
 #                     Added OBSSYS to look for the right multdither in ICS 
-#   v2.1   16/01/14 - Fixed missing observing block bug
-#                     Added bell to end of script
-#
+#          03/01/14 - made this test version in stable until the ICS release.
 
 # to do: check filter database
 #		 log the outputs
@@ -35,7 +33,7 @@ import commands as cmd
 ######### CHANGE BEFORE TESTING ON ICS ###########
 ##################################################
 
-testscript = '/home/whtobs/acam/jmcc'
+testscript = '/home/whtobs/acam/jmcc/stable'
 #testscript = '~/Documents/ING/Scripts/ACAM/mcol/test'
 
 ##################################################
@@ -209,7 +207,7 @@ def GetBlockList():
 		print "Running test script in: "
 		print "%s" % (testscript)
 		
-		l=len(sys.argv) + fe
+		l=len(sys.argv) - 2
 		comm=sys.argv[1]
 		for i in range(2,l):
 			comm=comm+" %s" %(sys.argv[i])
@@ -217,7 +215,6 @@ def GetBlockList():
 		if DEBUG == 1:				
 			comm=comm+" debug"
 		
-		print "python %s/mcol.py %s" % (testscript,comm)
 		os.system('python %s/mcol.py %s' % (testscript, comm))
 
 		exit()
@@ -237,9 +234,7 @@ def GetBlockList():
 			blocklist = sys.argv[4:]
 		else:
 			blocklist = sys.argv[4:fe]
-	
-	print blocklist
-	
+
 	return TEST, DEBUG, blocklist
 
 
@@ -401,11 +396,11 @@ for i in range(0,len(filt)):
 		print "Calling multdither with %s %s %s %s %s_%s" % (num[i],exptime[i],sys.argv[3],ag[i],sys.argv[1],filt[i])
 		if DEBUG == 0:
 			if TEST == 0:
-				os.system('python %s/bin/multdither.py %s %s %s %s %s_%s' % (obssys,num[i],exptime[i],sys.argv[3],ag[i],sys.argv[1],filt[i]))
+				os.system('python /home/whtobs/acam/jmcc/stable/multdither.py %s %s %s %s %s_%s' % (num[i],exptime[i],sys.argv[3],ag[i],sys.argv[1],filt[i]))
 
 			
 	if check_if_need_to_quit():
 		break	
 
-os.system('bell')
+
 

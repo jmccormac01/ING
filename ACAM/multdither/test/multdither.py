@@ -1,7 +1,7 @@
 
 #########################################################
 #                                                       #
-#               multdither.py ACAM v2.4                 #
+#               multdither.py ACAM v2.2                 #
 #                                                       #
 #           IF AUTOGUIDING PLEASE ENSURE                #
 #        GUIDING IS ON BEFORE RUNNING SCRIPT!           #
@@ -34,11 +34,7 @@
 #                     Added CheckCommandLine()
 #                     This substantially upgrades checks on commandline with support
 #                     for testing new scripts and debugging also
-#   v2.3   03/01/14 - Removed the 'Press Enter' command after showing how to abort
-#                     this was stopping mcol everytime it calls multdither!!
-#                     Added BELL to the end of the script
-#   v2.4   21/01/14 - Added error message when guiding does not resume 
-# 
+#
 
 import sys, os
 import time, signal, string, select
@@ -126,13 +122,9 @@ def WaitForNoGuiding():
 			counter = counter +1
 			
 			if counter > 5:
-				print "WARNING: The autoguider has not turned OFF after 5 attempts (10 sec)!"
+				print "WARNING: The autoguider has not turned off after 5 attempts (10 sec)!"
 				print "WARNING: Press 'Autoguide off' at the TCS to stop the guider."
 				print "WARNING: When the autoguider has been stopped this script will continue as normal"
-				os.system('bell')
-				time.sleep(1)
-				os.system('bell')
-				counter = 0
 						
 		if stat == "TRACKING":
 			return 0
@@ -141,8 +133,6 @@ def WaitForNoGuiding():
 def WaitForGuiding():
 	
 	stat=""
-	
-	counter = 0
 		
 	while stat != "GUIDING":
 		stat=os.popen('ParameterNoticeBoardLister -i TCS.telstat').readline().split('\n')[0]
@@ -166,28 +156,14 @@ def WaitForGuiding():
 			if abs(gsx_n-gsx) < 10 and abs(gsy_n-gsy) < 10:
 				os.system('tcsuser "autoguide on"')
 				time.sleep(2)
-				continue
-		
-		if stat != "GUIDING":
-			time.sleep(2)
-			counter = counter + 5
-			
-			if counter > 25:
-				print "WARNING: The autoguider has not turned ON after 5 attempts (30 sec)!"
-				print "WARNING: Please check guide star is ok."
-				print "WARNING: When the autoguider has been restarted this script will continue as normal"
-				os.system('bell')
-				time.sleep(1)
-				os.system('bell')
-				counter = 0
 
 
 def CheckCommandLine():
 	
 	if len(sys.argv) < 6:
-		print '\nUSAGE: multdither acam n_images exptime step_size auto_on/off "title"'
+		print "\nUSAGE: multdither acam n_images exptime step_size auto_on/off title"
 		print "auto_on/off is for autoguider on or off"
-		print 'e.g. multdither acam 10 100 5 auto_on "QUSg"\n'
+		print "e.g. multdither acam 10 100 5 auto_on QUSg\n"
 		exit()
 	
 	returnval = 0
@@ -195,12 +171,7 @@ def CheckCommandLine():
 	# function to check command line args [1], [2] and [3] are numbers
 	for i in range(0,3):
 		try:
-			if i == 0:
-				int(sys.argv[i+1])
-			if i == 1:
-				float(sys.argv[i+1])
-			if i == 2:
-				float(sys.argv[i+1])
+			int(sys.argv[i+1])
 		except ValueError:
 			if i==0:
 				print "Image number is INVALID!"
@@ -287,11 +258,11 @@ if sys.argv[4] == "auto_on" and int(sys.argv[1]) > 20:
 	z=raw_input("*CHECK WITH THE TO THAT GUIDING WON'T BE LOST*, THEN PRESS ENTER") 
 
 # how to abort
-print "\nTo ABORT this script: "
+print "To ABORT this script: "
 print "1) Press ctrl+c at anytime - or -"
 print "2) type 'q' and press ENTER"
 print "The script should stop and abort ACAM imaging shortly after.\n"
-#raw_input('Press ENTER to continue...')	
+raw_input('Press ENTER to continue...')	
 
 
 ##################################################
@@ -369,18 +340,18 @@ i=1
 k=0
 
 # take first image undithered
-print "Offset [1]: 0.0 0.0"
+print "Offset [1]: 0 0"
 print "Image [1]"
 if DEBUG == 0:
-	os.system('run acam %.1f "%s 0.0 0.0" &' % (float(sys.argv[2]),sys.argv[5]))
+	os.system('run acam %d "%s 0 0" &' % (float(sys.argv[2]),sys.argv[5]))
 
 time.sleep(st)
 
 # start loop over number of images required - 1
 while i < int(sys.argv[1]):
 		
-	x=float(spiralx[i])
-	y=float(spiraly[i])
+	x=int(spiralx[i])
+	y=int(spiraly[i])
 	i=i+1
 	
 	# check the image number just in case
@@ -394,9 +365,9 @@ while i < int(sys.argv[1]):
 			os.system('tcsuser "autoguide off"')
 			done=WaitForNoGuiding()
 	
-	print "Offset [%d]: %.1f %.1f..." % (i, float(x), float(y))
+	print "Offset [%d]: %d %d..." % (i, x, y)
 	if DEBUG == 0:
-		os.system('offset arc %.1f %.1f' % (float(x),float(y)))
+		os.system('offset arc %d %d' % (x,y))
 		done=WaitForTracking()
 			
 	# resumme guiding if necessary
@@ -417,7 +388,7 @@ while i < int(sys.argv[1]):
 	# take the next ACAM image
 	print "Image [%d]" % (i)
 	if DEBUG == 0:
-		os.system('run acam %.1f "%s %.1f %.1f" &' % (float(sys.argv[2]),sys.argv[5], float(x), float(y)))
+		os.system('run acam %d "%s %d %d" &' % (float(sys.argv[2]),sys.argv[5], x, y))
 	time.sleep(st)		
 	
 	if check_if_need_to_quit():
@@ -431,9 +402,9 @@ if sys.argv[4] == "auto_on":
 		os.system('tcsuser "autoguide off"')
 		done=WaitForNoGuiding()
 
-print "Returning telescope to 0.0 0.0..."
+print "Returning telescope to 0 0..."
 if DEBUG == 0:
-	os.system('offset arc 0.0 0.0')
+	os.system('offset arc 0 0')
 	done=WaitForTracking()
 
 if sys.argv[4] == "auto_on":
@@ -441,4 +412,3 @@ if sys.argv[4] == "auto_on":
 	if DEBUG == 0:
 		done=WaitForGuiding()
 
-os.system('bell')

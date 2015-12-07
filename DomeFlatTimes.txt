@@ -1,0 +1,5 @@
+SlnU LampA 50s  40000 counts - good 
+SlnG Lamp2 10s  40000 counts - good
+SlnR Lamp1 11s  25000 counts - really need ~13s
+SlnI Lamp1 5s   30000 counts - good
+SlnZ Lamp1 3.5s 40000 counts - good

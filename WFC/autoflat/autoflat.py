@@ -1,3 +1,4 @@
+#!/int/ObservingSystemSupportPackages/python-3.2.2/bin/python3.2
 
 #########################################################
 #                                                       #
@@ -55,12 +56,12 @@ print("Modules loaded...")
 
 filt_sleep = 10.0
 offset_sleep = 5.0
-max_counts = 35000.0
+max_counts = 40000.0
 target_counts = 30000.0
 min_counts = 20000.0
-max_exp = 200.0
+max_exp = 120.0
 min_exp = 2.0
-am_tweak = 0.75
+am_tweak = 0.70
 pm_tweak = 1.25
 fast_slow_gain=1.95
 
@@ -178,7 +179,6 @@ def ChangeFilter(name):
 	os.system('filter %s' % (name))
 	time.sleep(filt_sleep)
 
-	
 	return 0	
 
 
@@ -367,7 +367,7 @@ def Offset(j):
 
 def signal_handler(signal, frame):
 	print('   Ctrl+C caught, shutting down...')
-	os.system('abort &')
+	os.system('abort')
 	sys.exit(0)
 
 signal.signal(signal.SIGINT, signal_handler)
@@ -462,10 +462,13 @@ for i in range(0,len(filt_seq)):
 				if sky_lvl > min_counts and sky_lvl < max_counts:
 					j=j+1
 					print("[%d/%d] Flat %s successful..." % (int(j),int(sys.argv[1]),t))
-					o1=Offset(j)
-					if o1 != 0:
-						print("Problem offsetting, exiting!\n")
-						sys.exit()
+					
+					# dont offset for the final image of a filter
+					if j < int(sys.argv[1]):
+						o1=Offset(j)
+						if o1 != 0:
+							print("Problem offsetting, exiting!\n")
+							sys.exit()
 						
 				if req_exp <= max_exp:
 					continue
@@ -534,10 +537,13 @@ for i in range(0,len(filt_seq)):
 				if sky_lvl > min_counts and sky_lvl < max_counts:
 					j=j+1
 					print("[%d/%d] Flat %s successful..." % (int(j),int(sys.argv[1]),t))
-					o1=Offset(j)
-					if o1 != 0:
-						print("Problem offsetting, exiting!\n")
-						sys.exit()
+					
+					# don't offset for the final image of a filter
+					if j < int(sys.argv[1]):
+						o1=Offset(j)
+						if o1 != 0:
+							print("Problem offsetting, exiting!\n")
+							sys.exit()
 						
 				if req_exp >= min_exp:
 					continue
