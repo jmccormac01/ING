@@ -30,7 +30,8 @@
 #          11/04/13 - reversing filter order was inconclusive, replacing normal
 #                     order. U has been added to narrow band filters in DB as
 #                     the throughput is so bad
-#
+#	v1.5   07/12/15 - General tidy up - changed permissions on FilterDB and 
+#		              BiasLevelDB
 #   To do:
 #       Add windowed flats capability
 #       Add binning capability
@@ -49,11 +50,9 @@ import os, os.path, time
 import pyfits as pf
 import numpy as np
 import signal
-
 print("Modules loaded...")
 
 # Global Varibales #
-
 filt_sleep = 10.0
 offset_sleep = 5.0
 max_counts = 40000.0
@@ -68,55 +67,39 @@ fast_slow_gain=1.95
 f_db='/home/intobs/jmcc/FilterDB.txt'
 bias_db='/home/intobs/jmcc/BiasLevelDB.txt'
 
-
 # Functions #
 
 def GetAMorPM():
-
 	h_now=int(time.ctime().split()[3].split(':')[0])	
-
 	if h_now >= 12:
 		print("Afternoon Flats...")
 		token=0
 	if h_now < 12:
 		print("Morning Flats...")
 		token=1
-
 	return token
-
 
 def GetDataDir(token):
 	d=date.today()-timedelta(days=token)
-	
 	x="%d%02d%02d" % (d.year,d.month,d.day)
-	
 	if os.path.exists("/obsdata/inta/%s" % (x)) == True:
 		data_loc="/obsdata/inta/%s" % (x)
 	elif os.path.exists("/obsdata/intb/%s" % (x)) == True:
 		data_loc="/obsdata/intb/%s" % (x)
 	else: 
 		data_loc =0
-	
-	return data_loc
-	
+	return data_loc	
 	
 def GetFilters():
-
 	n_filt=len(sys.argv) - 3
-	
 	if n_filt >= 1:
 		filt_list=sys.argv[3:]
 		print("Filter(s): %s" % filt_list)
-	
 	return n_filt, filt_list
 
-
 def SortFilters(token,f_list):
-
 	f=open(f_db,'r').readlines()
-
 	name,BoN,cen_wave,width,num,mimic=[],[],[],[],[],[]
-
 	for i in range(0,len(f)):
 		name.append(f[i].split()[0])
 		cen_wave.append(f[i].split()[1])
@@ -125,8 +108,7 @@ def SortFilters(token,f_list):
 		num.append(f[i].split()[4])
 		mimic.append(f[i].split()[5])
 
-	id_n,cwl_n,wl_n,id_b,cwl_b,wl_b=[],[],[],[],[],[]
-	
+	id_n,cwl_n,wl_n,id_b,cwl_b,wl_b=[],[],[],[],[],[]	
 	# create 2 lists for narrow and broad band filters
 	for i in range(0,len(f_list)):
 		for j in range(0,len(f)):
@@ -138,8 +120,7 @@ def SortFilters(token,f_list):
 				if BoN[j] == 'N':
 					id_n.append(mimic[j])
 					cwl_n.append(cen_wave[j])
-					wl_n.append(width[j])
-		
+					wl_n.append(width[j])		
 		if f_list[i] not in mimic:
 			print("Filter not found: %s" % (f_list[i]))
 			
@@ -148,12 +129,10 @@ def SortFilters(token,f_list):
 		x=list(zip(cwl_b,wl_b,id_b))
 		x.sort()
 		cwl_b,wl_b,id_b=zip(*x)
-
 	if len(cwl_n) > 0:
 		y=list(zip(cwl_n,wl_n,id_n))
 		y.sort()
-		cwl_n,wl_n,id_n=zip(*y)
-	
+		cwl_n,wl_n,id_n=zip(*y)	
 	# test using filters in reverse order
 	# afternoon	
 	if token == 0:
@@ -168,44 +147,33 @@ def SortFilters(token,f_list):
 		#flat_list=list(id_b)+list(id_n)
 		print("Morning filter order:")
 		print(flat_list)
-	
 	return flat_list
 
 
 def ChangeFilter(name):
-	
 	print("Changing filter to %s..." % (name))
-	
 	os.system('filter %s' % (name))
 	time.sleep(filt_sleep)
-
 	return 0	
 
 
 def GetLastImage(data_loc):
-	
 	q=os.listdir(data_loc)
 	q.sort()
-	
 	im_list=[]
 	for i in range(0,len(q)):
 		if q[i][0] == 'r' and q[i][-4:] == '.fit':
 			im_list.append(q[i])
-	
 	# choose the last image
 	t=im_list[-1]
-	
 	return t
 
 
 # add to save bias to file and check there first for the current day
 def GetBiasLevel(data_loc):
-	
 	print("Getting fast and slow bias levels")
-	
 	# BiasLevelDB.txt e.g. format:
 	# 6 Mar 2013 bias_s bias_f
-	
 	# check the BiasLevelDB.txt file for bias levels first
 	lday,lmonth,lyear,lbias_s,lbias_f=open(bias_db).readlines()[-1].split()[:5]
 	
@@ -221,33 +189,24 @@ def GetBiasLevel(data_loc):
 		print('Bias levels in database, using these values...')
 		bias_s = float(lbias_s)
 		bias_f = float(lbias_f)
-	
 	if lday != day or lmonth != month or lyear != year:
-		
 		print('No bias levels in database, taking bias images to check...')
 		
 		# fast
 		os.system('bias') 
 		time.sleep(1)
-		
 		t=GetLastImage(data_loc)
-		
 		h=pf.open('%s/%s' % (data_loc,t))
 		data=h[1].data
-		
 		bias_f=np.median(np.median(data, axis=0))
 		
 		# slow
 		os.system('rspeed slow')
-		
 		os.system('bias')
 		time.sleep(1)
-		
 		t2=GetLastImage(data_loc)
-		
 		h2=pf.open('%s/%s' % (data_loc,t2))
 		data2=h2[1].data
-		
 		bias_s=np.median(np.median(data2, axis=0))
 		
 		print("Bias Slow: %.2f ADU" % (bias_s))
@@ -257,15 +216,12 @@ def GetBiasLevel(data_loc):
 		f=open(bias_db,'a')
 		f.write("%s  %s  %s  %s  %s\n" % (day,month,year,bias_s,bias_f))
 		f.close()
-		
 		# set rspeed to fast again for FTest
 		os.system('rspeed fast')
-	
 	return bias_f, bias_s
 
 
 def FTest(token,data_loc,bias_f):
-	
 	if token == 0:
 		test_time = 2
 	if token == 1:
@@ -273,64 +229,46 @@ def FTest(token,data_loc,bias_f):
 	
 	# test when at testscope
 	os.system('glance %d' % (test_time))
-	
 	time.sleep(3)
-	
 	# code to get median counts from test image
 	h=pf.open('%s/s1.fit' % (data_loc))
 	data=h[1].data
-	
 	sky_lvl=np.median(np.median(data, axis=0))-bias_f
-		
 	if token == 0:
 		req_exp=test_time/(sky_lvl/target_counts)
-		
 		# account for gain difference between fast and slow rspeeds
 		if sys.argv[2] == 'slow':
 			req_exp=req_exp/fast_slow_gain
-		
 		print("[Ftest] Sky Level: %d Required Exptime: %.2f" % (int(sky_lvl),req_exp))
 
 	if token == 1:
 		if sky_lvl <= 64000:
 			req_exp=test_time/(sky_lvl/target_counts)
-			
 			# account for gain difference between fast and slow rspeeds
 			if sys.argv[2]=='slow':
 				req_exp=req_exp/fast_slow_gain
-		
 		print("[Ftest] Sky Level: %d Required Exptime: %.2f" % (int(sky_lvl),req_exp))
 			
 		if sky_lvl > 64000:
 			req_exp=test_time*0.1
 			if req_exp<min_exp:
-	
 				# no need to account for difference in gains as using the lowest exp time
 				# and cannot go lower
 				req_exp=min_exp
 				print ("[Ftest] Sky level saturating, trying %.2f sec" % (req_exp))
-		
 	return sky_lvl, req_exp
 	
 
 def Flat(token,flat_time,data_loc,bias):
-	
 	os.system('flat %.2f' % (flat_time))
-	
 	time.sleep(3)
-	
 	t=GetLastImage(data_loc)
-	
 	h=pf.open('%s/%s' % (data_loc, t))[4]
-	
 	# check counts in centre of image
 	y=h.shape[0]/2
 	x=h.shape[1]/2
-	
 	data=h.data[y-100:y+100,x-100:x+100]
-		
 	sky_lvl=np.median(np.median(data, axis=0))-bias
-	
 	# tweak the required exptime to stop rising and
 	# falling counts during calibration phase
 	if token == 0:
@@ -341,24 +279,19 @@ def Flat(token,flat_time,data_loc,bias):
 	if sky_lvl <= 64000:
 		req_exp=(flat_time/(sky_lvl/target_counts))*tweak
 		print("[Flat: %s] Sky Level: %d Required Exptime: %.2f" % (t,int(sky_lvl),req_exp))
-
 	if sky_lvl > 64000:
 		req_exp=flat_time*0.1
 		if req_exp<min_exp:
 			req_exp=min_exp
 		print ("[Flat: %s] Sky level saturating, trying %.2f sec" % (t,req_exp))
-		
-	
 	return sky_lvl,req_exp,t
 
 
 def Offset(j):
-
 	shift=j*5
 	print("Offset to %d %d..." % (shift, shift))
 	os.system('offset arc %d %d' % (shift, shift))
 	time.sleep(offset_sleep)
-	
 	return 0
 
 ##################################################
@@ -394,9 +327,7 @@ filt_seq=SortFilters(token,filt_list)
 
 # begin looping over required number of flats	
 for i in range(0,len(filt_seq)):
-	
-	j = 0	
-
+	j = 0
 	# change filter
 	c1=ChangeFilter(filt_seq[i])
 	if c1 != 0:
@@ -405,7 +336,6 @@ for i in range(0,len(filt_seq)):
 	
 	# afternoon
 	if token == 0:
-		
 		# set a window and fast readout speed
 		print("Setting up FTest window and rspeed to fast...")
 		os.system('window 1 "[800:1200,2400:2800]"')
@@ -478,7 +408,6 @@ for i in range(0,len(filt_seq)):
 	
 	# morning
 	if token == 1:
-		
 		# set a window and fast readout speed
 		print("Setting up FTest window and rspeed to fast...")
 		os.system('window 1 "[800:1200,2400:2800]"')
@@ -503,7 +432,6 @@ for i in range(0,len(filt_seq)):
 				print("Setting rspeed back to %s..." % (sys.argv[2]))
 				os.system('rspeed %s' % (sys.argv[2]))
 				break
-
 
 		# if the required exp time is less than the minimum
 		# loop checking the sky until it is in range
