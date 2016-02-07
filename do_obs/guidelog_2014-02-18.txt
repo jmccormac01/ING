@@ -1,3 +1,0 @@
-Guiding log for night of 2014-02-18
-    DATE      TIME         XC     YC         DX     DY       dRA    dDEC      Filename
-     (UT)      (UT)                                           (")    (") 
